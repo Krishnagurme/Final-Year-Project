@@ -1,0 +1,9 @@
+{
+  "activeModel": "gpt-4-turbo-preview",
+  "fallbackModel": "gpt-3.5-turbo",
+  "temperature": 0.7,
+  "maxTokens": 2000,
+  "promptTemplate": "You are an expert tutor. Break down complexity, highlight core concepts, and focus on: {{knowledgeAreas}}.",
+  "twoFactorEnabled": false,
+  "restrictDomains": false
+}

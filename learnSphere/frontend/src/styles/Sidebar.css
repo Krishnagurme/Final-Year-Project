@@ -1,0 +1,175 @@
+/* Navbar Styles */
+.navbar {
+  /* Sleek glass navbar */
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Sidebar Styles */
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header.instructor {
+  border-bottom-color: rgba(229, 231, 235, 0.5);
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.75rem;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(248, 250, 252, 0.8);
+  color: #2563eb;
+  padding-left: 2rem;
+}
+
+.nav-item.active {
+  background-color: rgba(239, 246, 255, 0.8);
+  color: #2563eb;
+  padding-left: 2rem;
+}
+
+.nav-item.active::before {
+  background-color: #2563eb;
+}
+
+.instructor .nav-item.active {
+  background-color: rgba(239, 246, 255, 0.8);
+  color: #2563eb;
+}
+
+.instructor .nav-item.active::before {
+  background-color: #2563eb;
+}
+
+.sidebar-footer {
+  padding: 1rem 0;
+  border-top: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.student-sidebar {
+  width: 260px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+  z-index: 50;
+}
+
+.instructor-sidebar {
+  width: 260px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+  z-index: 50;
+}
+
+.instructor-sidebar .sidebar-header h3 {
+  color: #3b82f6;
+}
+
+.instructor-sidebar .nav-item {
+  color: #64748b;
+}
+
+.instructor-sidebar .nav-item:hover {
+  background-color: rgba(248, 250, 252, 0.8);
+  color: #2563eb;
+  padding-left: 2rem;
+}
+
+.instructor-sidebar .sidebar-footer {
+  border-top-color: rgba(229, 231, 235, 0.5);
+}
+
+@media (max-width: 768px) {
+  .student-sidebar,
+  .instructor-sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    height: 100vh;
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .student-sidebar.open,
+  .instructor-sidebar.open {
+    left: 0;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #64748b;
+    transition: color 0.2s;
+  }
+  .close-btn:hover {
+    color: #1e293b;
+  }
+  .instructor-sidebar .close-btn { color: #64748b; }
+  .instructor-sidebar .close-btn:hover { color: #1e293b; }
+}
+
+/* Custom minimal scrollbar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(203, 213, 225, 0.5);
+  border-radius: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.8);
+}
+.instructor-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(203, 213, 225, 0.5);
+}
+.instructor-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.8);
+}

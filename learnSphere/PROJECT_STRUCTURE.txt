@@ -1,0 +1,53 @@
+Node version = "18.x"
+npm version = "9.x"
+
+# Project Structure Complete
+
+LearnSphere/
+├── backend/
+│   ├── src/
+│   │   ├── config/          # Database and API configuration
+│   │   ├── models/          # MongoDB schemas (User, Course, Lesson, Assessment, Quiz, Certificate)
+│   │   ├── routes/          # API endpoints (auth, courses, users, assessments)
+│   │   ├── controllers/     # Business logic controllers
+│   │   ├── middleware/      # JWT auth, RBAC, validation
+│   │   ├── services/        # Service layer (auth, AI, courses)
+│   │   └── utils/           # Utility functions
+│   ├── Dockerfile           # Backend container configuration
+│   └── package.json         # Backend dependencies
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # Reusable UI components (Navbar, Sidebar, Cards, Charts)
+│   │   ├── pages/           # Page components (Dashboard, Courses, Assessment, etc.)
+│   │   ├── services/        # API service layer
+│   │   ├── store/           # Redux state management
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── utils/           # Helper functions
+│   │   ├── styles/          # CSS styles
+│   │   ├── App.jsx          # Main app component with routing
+│   │   └── main.jsx         # React DOM entry point
+│   ├── index.html           # HTML template
+│   ├── Dockerfile           # Frontend container (multi-stage build)
+│   ├── nginx.conf           # Nginx configuration for production
+│   ├── vite.config.js       # Vite configuration
+│   ├── tailwind.config.js   # Tailwind CSS configuration
+│   ├── postcss.config.js    # PostCSS configuration
+│   └── package.json         # Frontend dependencies
+│
+├── docs/
+│   ├── ARCHITECTURE.md      # System architecture and design
+│   ├── API_REFERENCE.md     # Complete API documentation
+│   ├── DEPLOYMENT.md        # Production deployment guide
+│   └── README.md            # Main project documentation
+│
+├── .env.example             # Environment variables template
+├── .gitignore               # Git ignore file
+├── .eslintrc.json           # ESLint configuration
+├── .prettierrc               # Prettier configuration
+├── docker-compose.yml       # Docker services orchestration
+├── Postman_Collection.json  # API testing collection
+├── setup.sh                 # Linux/Mac setup script
+├── setup.bat                # Windows setup script
+├── package.json             # Root package configuration
+└── README.md                # Main readme

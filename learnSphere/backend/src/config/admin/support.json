@@ -1,0 +1,11 @@
+[
+  {
+    "id": "TKT-101",
+    "user": "system.admin@learnsphere.com",
+    "type": "General",
+    "message": "LearnSphere is ready for admin usage.",
+    "status": "Open",
+    "date": "2026-06-19T15:20:05.636Z",
+    "sentiment": "Neutral"
+  }
+]

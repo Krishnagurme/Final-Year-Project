@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #3b82f6;
+  --primary-light: #60a5fa;
+  --primary-dark: #1e40af;
+  --secondary: #8b5cf6;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #06b6d4;
+  --light: #f8fafc;
+  --dark: #0f172a;
+  --gray: #64748b;
+  --student-primary: #3b82f6;
+  --instructor-primary: #8b5cf6;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7fc; /* Softer, slightly cool modern gray background */
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+@layer components {
+  /* Modern Glassmorphism utility */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-md border border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)];
+  }
+
+  /* Buttons */
+  .btn {
+    @apply relative overflow-hidden px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 border-none;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-100 text-slate-700 hover:bg-slate-200 hover:-translate-y-0.5 shadow-sm border border-slate-200;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 text-slate-700 placeholder-slate-400;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white/90 backdrop-blur-xl border border-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] p-6 hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12)] transition-all duration-300;
+  }
+
+  /* Gradient Text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md border;
+  }
+  .badge-beginner {
+    @apply bg-green-50/80 text-green-700 border-green-200;
+  }
+  .badge-intermediate {
+    @apply bg-amber-50/80 text-amber-700 border-amber-200;
+  }
+  .badge-advanced {
+    @apply bg-purple-50/80 text-purple-700 border-purple-200;
+  }
+}
+
