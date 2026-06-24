@@ -1,6 +1,9 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const AI_COMPLETIONS_URL = `/chat/completions`;
+const getAiHeaders = () => ({ Authorization: `Bearer ${process.env.AI_API_KEY || process.env.OPENAI_API_KEY || ''}`, 'Content-Type': 'application/json', ...(process.env.AI_BASE_URL?.includes('openrouter.ai') ? { 'HTTP-Referer': 'https://learnsphere.app', 'X-Title': 'LearnSphere' } : {}) });
+const getAiModel = () => process.env.AI_CHAT_MODEL || 'deepseek/deepseek-chat';
+const isAiEnabled = () => Boolean(process.env.AI_API_KEY || process.env.OPENAI_API_KEY);
 
 const SUBJECT_KNOWLEDGE_AREAS = {
   'Engineering Mathematics III': [
@@ -215,11 +218,11 @@ const LOCAL_QUESTION_BANKS = {
       id: '1',
       question:
         'Which matrix operation is used to solve linear equations using determinant ratios?',
-      options: ['Cramer’s Rule', 'Gaussian Elimination', 'Matrix Inversion', 'LU Decomposition'],
-      correctAnswer: 'Cramer’s Rule',
+      options: ['Cramerâ€™s Rule', 'Gaussian Elimination', 'Matrix Inversion', 'LU Decomposition'],
+      correctAnswer: 'Cramerâ€™s Rule',
       difficulty: 'easy',
       topic: 'Matrices',
-      explanation: 'Cramer’s Rule uses determinants to solve systems of linear equations.',
+      explanation: 'Cramerâ€™s Rule uses determinants to solve systems of linear equations.',
     },
     {
       id: '2',
@@ -293,11 +296,11 @@ const LOCAL_QUESTION_BANKS = {
       id: '3',
       question:
         'Which algorithm is best for finding the shortest path in a weighted graph with non-negative edges?',
-      options: ['Dijkstra’s Algorithm', 'Bubble Sort', 'Depth-first Search', 'Kruskal’s Algorithm'],
-      correctAnswer: 'Dijkstra’s Algorithm',
+      options: ['Dijkstraâ€™s Algorithm', 'Bubble Sort', 'Depth-first Search', 'Kruskalâ€™s Algorithm'],
+      correctAnswer: 'Dijkstraâ€™s Algorithm',
       difficulty: 'medium',
       topic: 'Graph Algorithms',
-      explanation: 'Dijkstra’s algorithm finds shortest paths in graphs with non-negative weights.',
+      explanation: 'Dijkstraâ€™s algorithm finds shortest paths in graphs with non-negative weights.',
     },
     {
       id: '4',
@@ -535,7 +538,7 @@ function buildFallbackEvaluation(answers, subject, courseLevel) {
 
 export const aiService = {
   async generateDynamicTest(subject, numberOfQuestions = 5) {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!isAiEnabled()) {
       return {
         success: true,
         questions: getFallbackQuestions(subject, numberOfQuestions),
@@ -560,9 +563,9 @@ export const aiService = {
       `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
@@ -579,8 +582,8 @@ export const aiService = {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -607,7 +610,7 @@ export const aiService = {
   },
 
   async evaluatePrerequisites(answers, subject, courseLevel) {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!isAiEnabled()) {
       return buildFallbackEvaluation(answers, subject, courseLevel);
     }
 
@@ -633,9 +636,9 @@ export const aiService = {
       `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
@@ -652,8 +655,8 @@ export const aiService = {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -709,9 +712,9 @@ export const aiService = {
       `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
@@ -728,8 +731,8 @@ export const aiService = {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -758,7 +761,7 @@ export const aiService = {
   },
 
   async scoreAssessment(assessment, courseId, subject) {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!isAiEnabled()) {
       const fallback = buildFallbackEvaluation(assessment, subject, courseId);
       return {
         ...fallback,
@@ -786,9 +789,9 @@ export const aiService = {
       `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
@@ -805,8 +808,8 @@ export const aiService = {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -840,3 +843,4 @@ export const aiService = {
     }
   },
 };
+

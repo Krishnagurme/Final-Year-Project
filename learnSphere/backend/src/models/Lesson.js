@@ -17,9 +17,17 @@ const lessonSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    notes: {
+      type: String,
+      default: '',
+    },
     content: {
       type: String,
       required: [true, 'Lesson content is required'],
+    },
+    studyMaterial: {
+      type: String,
+      default: '',
     },
     contentType: {
       type: String,

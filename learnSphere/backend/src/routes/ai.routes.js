@@ -43,6 +43,15 @@ router.get('/documents', authenticate, async (req, res) => {
   res.json({ data: documents });
 });
 
+router.get('/assistant-summary', authenticate, async (req, res) => {
+  try {
+    const summary = await aiWorkspaceService.getAssistantSummary(req.user.userId);
+    res.json({ data: summary });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to generate assistant summary' });
+  }
+});
+
 router.post(
   '/documents/upload',
   authenticate,

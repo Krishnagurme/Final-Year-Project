@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 const certificateSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -20,9 +26,18 @@ const certificateSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    verificationToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
     studentName: {
       type: String,
       required: true,
+    },
+    studentEmail: {
+      type: String,
     },
     courseName: {
       type: String,
@@ -35,7 +50,6 @@ const certificateSchema = new mongoose.Schema(
     },
     completedAt: {
       type: Date,
-      required: true,
     },
     expiresAt: {
       type: Date,
@@ -43,7 +57,6 @@ const certificateSchema = new mongoose.Schema(
     },
     certificateUrl: {
       type: String,
-      required: true,
     },
     verificationUrl: {
       type: String,
@@ -52,6 +65,12 @@ const certificateSchema = new mongoose.Schema(
     },
     qrCodeUrl: {
       type: String,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'suspended', 'revoked', 'expired'],
+      default: 'active',
+      index: true,
     },
     skills: [{
       name: String,
@@ -86,6 +105,8 @@ const certificateSchema = new mongoose.Schema(
       issuerId: String,
       program: String,
       department: String,
+      progress: Number,
+      grade: String,
       // Additional metadata as needed
     },
   },
@@ -101,7 +122,20 @@ certificateSchema.virtual('verificationLink').get(function() {
   return `${process.env.BASE_URL}/verify/${this.certificateNumber}`;
 });
 
+// Set userId = studentId before saving
+certificateSchema.pre('save', function(next) {
+  if (!this.userId && this.studentId) {
+    this.userId = this.studentId;
+  }
+  if (!this.studentId && this.userId) {
+    this.studentId = this.userId;
+  }
+  next();
+});
+
 // Indexes
+certificateSchema.index({ userId: 1, courseId: 1 }, { unique: true });
 certificateSchema.index({ studentId: 1, courseId: 1 }, { unique: true });
+certificateSchema.index({ verificationToken: 1 });
 
 export default mongoose.model('Certificate', certificateSchema);

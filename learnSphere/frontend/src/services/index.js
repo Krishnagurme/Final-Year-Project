@@ -17,7 +17,18 @@ export const courseService = {
   updateCourse: (id, data) => api.put(`/courses/${id}`, data),
   deleteCourse: id => api.delete(`/courses/${id}`),
   enrollCourse: id => api.post(`/courses/${id}/enroll`),
+  getMyEnrollments: () => api.get('/courses/my/enrollments'),
   getInstructorCourses: () => api.get('/courses/instructor/my-courses'),
+  getPrerequisiteQuestions: id => api.get(`/courses/${id}/prerequisite`),
+  submitPrerequisiteAnswers: (id, answers) => api.post(`/courses/${id}/prerequisite/submit`, { answers }),
+  getEnrolledCourseDetail: id => api.get(`/courses/${id}/detail`),
+  accessTopic: (courseId, lessonId) => api.post(`/courses/${courseId}/lessons/${lessonId}/access`),
+  completeTopic: (courseId, lessonId) => api.post(`/courses/${courseId}/lessons/${lessonId}/complete`),
+  getTopics: courseId => api.get(`/courses/${courseId}/topics`),
+  createTopic: (courseId, data) => api.post(`/courses/${courseId}/topics`, data),
+  updateTopic: (courseId, topicId, data) => api.put(`/courses/${courseId}/topics/${topicId}`, data),
+  deleteTopic: (courseId, topicId) => api.delete(`/courses/${courseId}/topics/${topicId}`),
+  getPrerequisiteResults: () => api.get('/courses/my/prerequisite-results'),
 };
 
 export const assessmentService = {
@@ -108,6 +119,7 @@ const parseSseChunk = chunk => {
 
 export const aiService = {
   getOverview: () => api.get('/ai/overview'),
+  getAssistantSummary: () => api.get('/ai/assistant-summary'),
   getSessions: () => api.get('/ai/sessions'),
   createSession: data => api.post('/ai/sessions', data),
   getSession: sessionId => api.get(`/ai/sessions/${sessionId}`),
@@ -165,6 +177,26 @@ export const userService = {
   updateProfile: data => api.put('/users/profile', data),
   getDashboardStats: () => api.get('/users/dashboard-stats'),
   updateAssessmentProgress: data => api.post('/users/update-assessment-progress', data),
+};
+
+export const certificateService = {
+  // Get all user's certificates
+  getMyCertificates: () => api.get('/certificates/my'),
+  
+  // Get a single certificate
+  getCertificate: id => api.get(`/certificates/${id}`),
+  
+  // Generate certificate when eligible
+  generateCertificate: data => api.post('/certificates/generate', data),
+  
+  // Verify certificate with token
+  verifyCertificate: token => api.get(`/certificates/verify/${token}`),
+  
+  // Download certificate
+  downloadCertificate: (id, format = 'json') => api.get(`/certificates/${id}/download`, { params: { format } }),
+  
+  // Share certificate
+  shareCertificate: id => api.post(`/certificates/${id}/share`),
 };
 
 export const adminService = {

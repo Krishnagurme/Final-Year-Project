@@ -49,9 +49,11 @@ import aiRoutes from './routes/ai.routes.js';
 import deeptutorRoutes from './routes/deeptutor.routes.js';
 import userRoutes from './routes/user.routes.js';
 import courseRoutes from './routes/course.routes.js';
+import topicRoutes from './routes/topic.routes.js';
 import assessmentRoutes from './routes/assessment.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import certificateRoutes from './routes/certificate.routes.js';
 import { initAdminSocket } from './realtime/adminSocket.js';
 
 app.use('/api/auth', authRoutes);
@@ -59,9 +61,11 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/deeptutor', deeptutorRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/courses/:courseId/topics', topicRoutes);
 app.use('/api/assessments', assessmentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/certificates', certificateRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

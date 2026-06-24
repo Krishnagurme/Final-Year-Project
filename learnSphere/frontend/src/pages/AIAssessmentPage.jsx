@@ -16,7 +16,7 @@ import {
 
 const VIEW_KEYS = ['assessment', 'results', 'logs', 'reports'];
 
-const normalizeView = raw => (VIEW_KEYS.includes(raw) ? raw : 'assessment');
+const normalizeView = raw => (VIEW_KEYS.includes(raw) ? raw : 'results');
 
 const getViewFromSearch = search => {
   const value = new URLSearchParams(search).get('view');
@@ -60,6 +60,7 @@ const AIAssessmentPage = () => {
   const [priorWeakTopics, setPriorWeakTopics] = useState([]);
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [subjectsLoading, setSubjectsLoading] = useState(true);
+  const [prerequisiteResults, setPrerequisiteResults] = useState([]);
 
   const syncViewFromUrl = () => {
     const next = getViewFromSearch(location.search);
@@ -82,11 +83,12 @@ const AIAssessmentPage = () => {
   const loadAssessmentData = async () => {
     setSubjectsLoading(true);
     try {
-      const [statsRes, courseRes, logsRes, analyticsRes] = await Promise.allSettled([
+      const [statsRes, courseRes, logsRes, analyticsRes, prereqRes] = await Promise.allSettled([
         userService.getDashboardStats(),
         courseService.getAllCourses({ limit: 100 }),
         assessmentService.getMyAssessments(),
         assessmentService.getAnalytics(),
+        courseService.getPrerequisiteResults(),
       ]);
 
       const stats = statsRes.status === 'fulfilled' ? statsRes.value.data?.data : null;
@@ -94,6 +96,7 @@ const AIAssessmentPage = () => {
       const logs = logsRes.status === 'fulfilled' ? logsRes.value.data?.data || [] : [];
       const analyticsPayload =
         analyticsRes.status === 'fulfilled' ? analyticsRes.value.data?.data || null : null;
+      const prereqData = prereqRes.status === 'fulfilled' ? prereqRes.value.data?.data || [] : [];
 
       const historyRows = (stats?.assessmentHistory || [])
         .map((item, index) => ({
@@ -111,10 +114,8 @@ const AIAssessmentPage = () => {
       historyRows.forEach(item => {
         if (item.subject) titles.add(String(item.subject).trim());
       });
+      // Only include enrolled courses, not all available courses
       (stats?.enrolledCourses || []).forEach(item => {
-        if (item.title) titles.add(String(item.title).trim());
-      });
-      courses.forEach(item => {
         if (item.title) titles.add(String(item.title).trim());
       });
 
@@ -122,17 +123,19 @@ const AIAssessmentPage = () => {
         [...titles].sort((a, b) => a.localeCompare(b)).map(name => ({
           name,
           icon: 'Topic',
-          description: 'Generated from your enrollments and assessment history',
+          description: 'Generated from your enrolled courses and assessment history',
         }))
       );
       setAssessmentLogs(logs);
       setAnalytics(analyticsPayload);
+      setPrerequisiteResults(prereqData);
     } catch (loadError) {
       console.error('Error loading assessment data:', loadError);
       setAvailableSubjects([]);
       setAssessmentHistory([]);
       setAssessmentLogs([]);
       setAnalytics(null);
+      setPrerequisiteResults([]);
     } finally {
       setSubjectsLoading(false);
     }
@@ -340,10 +343,9 @@ const AIAssessmentPage = () => {
         <div className="flex justify-center mb-4">
           <Brain className="text-blue-600" size={56} />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900">AI Prerequisite Test System</h1>
+        <h1 className="text-4xl font-bold text-gray-900">Enrolled Subjects</h1>
         <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
-          Pick a subject and start an adaptive assessment. Your previous weak topics are used to
-          personalize upcoming questions.
+          View your enrolled courses and their prerequisite quiz status.
         </p>
       </div>
 
@@ -352,8 +354,7 @@ const AIAssessmentPage = () => {
       ) : availableSubjects.length === 0 ? (
         <div className="card text-center py-12 max-w-xl mx-auto">
           <p className="text-gray-700 mb-4">
-            No topics found yet. Enroll in a course or complete an assessment so subjects appear
-            here.
+            No enrolled courses yet. Enroll in a course to see it here.
           </p>
           <Link to="/student/courses" className="btn btn-primary inline-block">
             Browse courses
@@ -361,19 +362,43 @@ const AIAssessmentPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {availableSubjects.map(subject => (
-            <button
-              key={subject.name}
-              onClick={() => handleSubjectSelect(subject.name)}
-              disabled={loading}
-              className="card hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group text-left"
-            >
-              <div className="text-sm mb-3 text-blue-700 font-semibold">{subject.icon}</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{subject.name}</h3>
-              <p className="text-gray-600 text-sm">{subject.description}</p>
-              <div className="mt-4 text-blue-600 font-semibold text-sm">Take test</div>
-            </button>
-          ))}
+          {availableSubjects.map(subject => {
+            const prereqResult = prerequisiteResults.find(r => r.courseTitle === subject.name);
+            return (
+              <div
+                key={subject.name}
+                className="card"
+              >
+                <div className="text-sm mb-3 text-blue-700 font-semibold">{subject.icon}</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{subject.name}</h3>
+                <p className="text-gray-600 text-sm mb-4">{subject.description}</p>
+                {prereqResult ? (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">Prerequisite Quiz</span>
+                      <span className="text-sm px-3 py-1 rounded-full bg-green-100 text-green-800 font-semibold">
+                        Completed
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Score</span>
+                      <span className="text-lg font-bold text-gray-900">{prereqResult.score}%</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm text-gray-600">Level</span>
+                      <span className="text-sm font-semibold text-purple-600">{prereqResult.knowledgeLevel}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+                      Prerequisite quiz not completed
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -384,10 +409,10 @@ const AIAssessmentPage = () => {
       <div className="card">
         <div className="flex items-center gap-3 mb-3">
           <ListChecks className="text-blue-600" size={24} />
-          <h2 className="text-xl font-bold text-gray-900">Latest result</h2>
+          <h2 className="text-xl font-bold text-gray-900">Latest AI assessment result</h2>
         </div>
         {!latestResult ? (
-          <p className="text-gray-600">No assessment result yet. Take your first assessment.</p>
+          <p className="text-gray-600">No AI assessment result yet. Take your first assessment.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="rounded-lg bg-blue-50 p-4">
@@ -413,10 +438,40 @@ const AIAssessmentPage = () => {
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
           <ClipboardList className="text-blue-600" size={24} />
-          <h2 className="text-xl font-bold text-gray-900">All results</h2>
+          <h2 className="text-xl font-bold text-gray-900">Prerequisite quiz results (Enrolled courses)</h2>
+        </div>
+        {prerequisiteResults.length === 0 ? (
+          <p className="text-gray-600">No prerequisite quiz results yet. Enroll in a course and complete the prerequisite quiz.</p>
+        ) : (
+          <div className="space-y-3">
+            {prerequisiteResults.map(row => (
+              <div
+                key={row.courseId}
+                className="rounded-lg border border-gray-200 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+              >
+                <div>
+                  <p className="font-semibold text-gray-900">{row.courseTitle}</p>
+                  <p className="text-sm text-gray-600">{formatDateTime(row.completedAt)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm px-3 py-1 rounded-full bg-green-100 text-green-800">
+                    {row.knowledgeLevel}
+                  </span>
+                  <span className="text-lg font-bold text-gray-900">{row.score}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="flex items-center gap-3 mb-4">
+          <ClipboardList className="text-blue-600" size={24} />
+          <h2 className="text-xl font-bold text-gray-900">All AI assessment results</h2>
         </div>
         {assessmentHistory.length === 0 ? (
-          <p className="text-gray-600">No completed assessments yet.</p>
+          <p className="text-gray-600">No completed AI assessments yet.</p>
         ) : (
           <div className="space-y-3">
             {assessmentHistory.map(row => (
@@ -576,214 +631,16 @@ const AIAssessmentPage = () => {
   return (
     <StudentLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        {stage === 'subject' && (
-          <>
-            {renderViewTabs()}
-            {error && (
-              <div className="bg-red-50 border-l-4 border-l-red-500 p-4 rounded">
-                <p className="text-red-700">{error}</p>
-              </div>
-            )}
-            {activeView === 'assessment' && renderSubjectSelection()}
-            {activeView === 'results' && renderResultsView()}
-            {activeView === 'logs' && renderLogsView()}
-            {activeView === 'reports' && renderReportsView()}
-          </>
-        )}
-
-        {stage === 'quiz' && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{selectedSubject} Assessment</h1>
-                <p className="text-gray-600 mt-2">Answer all questions to complete the test.</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Questions</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {Object.keys(answers).length}/{quizQuestions.length}
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${(Object.keys(answers).length / quizQuestions.length) * 100}%`,
-                }}
-              />
-            </div>
-
-            {priorWeakTopics.length > 0 && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 text-sm">
-                <p className="font-semibold flex items-center gap-2">
-                  <AlertCircle className="shrink-0" size={18} />
-                  Personalized from previous attempts
-                </p>
-                <p className="mt-1 text-amber-800">
-                  Focus topics: <span className="font-medium">{priorWeakTopics.join(', ')}</span>
-                </p>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-50 border-l-4 border-l-red-500 p-4 rounded">
-                <p className="text-red-700">{error}</p>
-              </div>
-            )}
-
-            <div className="space-y-6">
-              {quizQuestions.map((question, index) => (
-                <div key={question.id} className="card">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900 flex-1">
-                      Question {index + 1}: {question.question}
-                    </h3>
-                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full ml-4">
-                      {String(question.difficulty || 'medium').toUpperCase()}
-                    </span>
-                  </div>
-                  {question.topic && (
-                    <p className="text-sm text-blue-600 mb-4 flex items-center gap-2">
-                      <BookOpen size={14} />
-                      Topic: {question.topic}
-                    </p>
-                  )}
-                  <div className="space-y-3">
-                    {(question.options || []).map((option, optionIndex) => (
-                      <label
-                        key={optionIndex}
-                        className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:bg-blue-50 transition"
-                        style={{
-                          borderColor: answers[question.id] === option ? '#3b82f6' : '#e5e7eb',
-                          backgroundColor: answers[question.id] === option ? '#eff6ff' : 'transparent',
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${question.id}`}
-                          value={option}
-                          checked={answers[question.id] === option}
-                          onChange={() => handleAnswerChange(question.id, option)}
-                          className="w-5 h-5 cursor-pointer"
-                        />
-                        <span className="font-medium text-gray-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-4 sticky bottom-0 bg-white p-4 rounded-lg shadow-lg">
-              <button
-                onClick={() => {
-                  setStage('subject');
-                  setAnswers({});
-                  setPriorWeakTopics([]);
-                  updateView('assessment');
-                }}
-                className="btn btn-secondary py-3 px-6"
-              >
-                Change subject
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={Object.keys(answers).length < quizQuestions.length || loading}
-                className="flex-1 btn btn-primary py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Evaluating...' : 'Submit and evaluate'}
-              </button>
-            </div>
+        {renderViewTabs()}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-l-red-500 p-4 rounded">
+            <p className="text-red-700">{error}</p>
           </div>
         )}
-
-        {stage === 'results' && results && (
-          <div className="space-y-8">
-            <div className="text-center card bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 border-2 border-green-200">
-              <CheckCircle className="text-green-500 mx-auto mb-4" size={56} />
-              <h1 className="text-4xl font-bold text-gray-900">Assessment complete</h1>
-              <p className="text-gray-600 mt-2">{results.timestamp}</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="card text-center border-t-4 border-t-blue-600">
-                <p className="text-gray-600 text-sm mb-2 font-semibold">Score</p>
-                <p className="text-4xl font-bold text-blue-600">{Math.round(results.score || 0)}%</p>
-              </div>
-              <div className="card text-center border-t-4 border-t-purple-600">
-                <p className="text-gray-600 text-sm mb-2 font-semibold">Skill level</p>
-                <p className="text-3xl font-bold text-purple-600">{results.recommendedLevel}</p>
-              </div>
-              <div className="card text-center border-t-4 border-t-green-600">
-                <p className="text-gray-600 text-sm mb-2 font-semibold">Accuracy</p>
-                <p className="text-4xl font-bold text-green-600">
-                  {Math.round(results.accuracy || 0)}%
-                </p>
-              </div>
-              <div className="card text-center border-t-4 border-t-orange-600">
-                <p className="text-gray-600 text-sm mb-2 font-semibold">Correct answers</p>
-                <p className="text-4xl font-bold text-orange-600">
-                  {results.correctAnswers}/{results.totalQuestions}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="card">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Strengths</h3>
-                <ul className="space-y-2">
-                  {(results.strengths || []).map((item, index) => (
-                    <li key={index} className="text-gray-700">
-                      - {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="card">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Areas to improve</h3>
-                <ul className="space-y-2">
-                  {(results.weaknesses || []).map((item, index) => (
-                    <li key={index} className="text-gray-700">
-                      - {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="card border-l-4 border-l-blue-600">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">AI feedback</h3>
-              <p className="text-gray-700 leading-relaxed">{results.feedback}</p>
-            </div>
-
-            <div className="flex flex-wrap gap-4">
-              <button
-                onClick={() => {
-                  setStage('subject');
-                  setAnswers({});
-                  setSelectedSubject('');
-                  setResults(null);
-                  setPriorWeakTopics([]);
-                  updateView('assessment');
-                }}
-                className="btn btn-primary py-3 px-6"
-              >
-                Take another assessment
-              </button>
-              <button onClick={() => updateView('results')} className="btn btn-secondary py-3 px-6">
-                View results
-              </button>
-              <button onClick={() => updateView('logs')} className="btn btn-secondary py-3 px-6">
-                View logs
-              </button>
-              <button onClick={() => updateView('reports')} className="btn btn-secondary py-3 px-6">
-                View reports
-              </button>
-            </div>
-          </div>
-        )}
+        {activeView === 'assessment' && renderSubjectSelection()}
+        {activeView === 'results' && renderResultsView()}
+        {activeView === 'logs' && renderLogsView()}
+        {activeView === 'reports' && renderReportsView()}
       </div>
     </StudentLayout>
   );

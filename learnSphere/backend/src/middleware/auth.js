@@ -40,3 +40,17 @@ export const isAdmin = (req, res, next) => {
   }
   next();
 };
+
+export const isInstructor = (req, res, next) => {
+  if (req.user.role !== 'INSTRUCTOR') {
+    return res.status(403).json({ message: 'Only instructors can access this resource' });
+  }
+  next();
+};
+
+export const isInstructorOrAdmin = (req, res, next) => {
+  if (!['INSTRUCTOR', 'ADMIN'].includes(req.user.role)) {
+    return res.status(403).json({ message: 'Instructor or admin access required' });
+  }
+  next();
+};

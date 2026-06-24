@@ -82,6 +82,72 @@ export const aiWorkspaceService = {
     return getAiOverview();
   },
 
+  async getAssistantSummary(userId) {
+    // Personal summary for `userId` plus global historical stats across all students
+    const [userSessions, userDocs] = await Promise.all([
+      AiChatSession.find({ userId }).sort({ updatedAt: -1 }).lean(),
+      AiDocument.find({ userId }).sort({ updatedAt: -1 }).lean(),
+    ]);
+
+    const mySessionCount = userSessions.length;
+    const myDocumentCount = userDocs.length;
+    const myMessageCount = await AiChatMessage.countDocuments({ userId });
+
+    const totalStudents = (await AiChatMessage.distinct('userId')).length || 0;
+    const totalStudentMessages = await AiChatMessage.countDocuments({ role: 'user' });
+    const totalSessions = await AiChatSession.countDocuments();
+
+    const firstActivity = await AiChatMessage.findOne().sort({ createdAt: 1 }).lean();
+    const lastActivity = await AiChatMessage.findOne().sort({ createdAt: -1 }).lean();
+
+    const goal = userSessions[0]?.title || 'Personal portfolio overview';
+
+    const currentStatus = [
+      { label: `My sessions: ${mySessionCount}`, status: mySessionCount ? '✅' : '❌' },
+      { label: `My messages: ${myMessageCount}`, status: myMessageCount ? '✅' : '❌' },
+      { label: `My documents: ${myDocumentCount}`, status: myDocumentCount ? '✅' : '❌' },
+      { label: `Total students (all-time): ${totalStudents}`, status: totalStudents ? '✅' : '❌' },
+      { label: `Total student messages (all-time): ${totalStudentMessages}`, status: totalStudentMessages ? '✅' : '❌' },
+      { label: `Total sessions (all-time): ${totalSessions}`, status: totalSessions ? '✅' : '❌' },
+    ];
+
+    const nextActions = [
+      'Export your top sessions as study notes',
+      'Upload more curriculum documents to improve RAG answers',
+      'Review high-value memory items and tag important concepts',
+    ];
+
+    const blockers = [];
+    if (!process.env.AI_API_KEY) blockers.push('AI provider API key is not configured');
+    if (!process.env.AI_BASE_URL) blockers.push('AI base URL is not configured');
+
+    const suggestions = [
+      'Annotate sessions with learning objectives for better summaries',
+      'Enable periodic backup of uploaded documents and embeddings',
+      'Invite students to label important messages to improve memory filtering',
+    ];
+
+    return {
+      goal,
+      currentStatus,
+      nextActions,
+      blockers,
+      suggestions,
+      timeline: {
+        firstActivityAt: firstActivity?.createdAt || null,
+        lastActivityAt: lastActivity?.createdAt || null,
+      },
+      counts: {
+        mySessionCount,
+        myDocumentCount,
+        myMessageCount,
+        totalStudents,
+        totalStudentMessages,
+        totalSessions,
+      },
+    };
+  },
+
   async createSession(userId, payload = {}) {
     const session = await AiChatSession.create({
       userId,

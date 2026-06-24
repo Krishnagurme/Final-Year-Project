@@ -1,70 +1,78 @@
 import OpenAI from 'openai';
 import { aiConfig, isRemoteLlmEnabled } from '../utils/aiConfig.js';
 
-let client = null;
+let _client = null;
+let _clientKey = '';
 
+/**
+ * Returns an OpenAI-SDK client pointed at whatever gateway is configured.
+ * Works with OpenRouter, standard OpenAI, or any OpenAI-compatible endpoint.
+ */
 const getClient = () => {
-  if (!client) {
-    client = new OpenAI({
+  const currentKey = `${aiConfig.apiKey}||${aiConfig.baseUrl}`;
+  if (!_client || _clientKey !== currentKey) {
+    _clientKey = currentKey;
+    _client = new OpenAI({
       apiKey: aiConfig.apiKey,
       baseURL: aiConfig.baseUrl || undefined,
+      // OpenRouter requires these headers to identify the calling app
+      defaultHeaders: aiConfig.baseUrl?.includes('openrouter.ai')
+        ? {
+            'HTTP-Referer': 'https://learnsphere.app',
+            'X-Title': 'LearnSphere',
+          }
+        : {},
     });
   }
-  return client;
+  return _client;
 };
 
+// ─── Local fallback (no API key) ─────────────────────────────────────────────
 const buildLocalResponse = ({ messages, retrievedChunks = [], memoryItems = [] }) => {
-  const latestUserMessage = [...messages].reverse().find(message => message.role === 'user')?.content || '';
+  const latest = [...messages].reverse().find(m => m.role === 'user')?.content || '';
+
   const lead = retrievedChunks.length
-    ? 'I found relevant context in your uploaded material, so I am grounding the answer in those notes.'
-    : 'I do not have document context for this answer, so I am responding from the conversation alone.';
+    ? 'I found relevant context in your uploaded material and am grounding the answer in those notes.'
+    : 'I do not have document context for this answer and am responding from the conversation alone.';
 
   const memoryLead = memoryItems.length
-    ? ` I also kept in mind: ${memoryItems.map(item => item.content).join('; ')}.`
+    ? ` I also kept in mind: ${memoryItems.map(i => i.content).join('; ')}.`
     : '';
 
   const evidenceLead = retrievedChunks.length
-    ? ` Source highlights: ${retrievedChunks
-        .slice(0, 3)
-        .map(item => `${item.documentName} chunk ${item.chunkIndex + 1}`)
-        .join(', ')}.`
+    ? ` Sources referenced: ${retrievedChunks.slice(0, 3).map(i => `${i.documentName} (chunk ${i.chunkIndex + 1})`).join(', ')}.`
     : '';
 
-  return `${lead}${memoryLead}${evidenceLead}\n\nHere is a practical answer to your request:\n${latestUserMessage}\n\n1. Start with the core concept.\n2. Tie it back to the uploaded learning material.\n3. Finish with a next step the learner can take immediately.`;
+  return `${lead}${memoryLead}${evidenceLead}\n\nHere is a practical answer to your request:\n${latest}\n\n1. Start with the core concept.\n2. Tie it back to the uploaded learning material.\n3. Finish with a next step you can take immediately.`;
 };
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// ─── Main service ─────────────────────────────────────────────────────────────
 export const llmService = {
-  async streamChatCompletion({ systemPrompt, messages, retrievedChunks, memoryItems, onToken }) {
+  async streamChatCompletion({ systemPrompt, messages, retrievedChunks = [], memoryItems = [], onToken }) {
+
+    // ── Offline fallback ──────────────────────────────────────────────────────
     if (!isRemoteLlmEnabled()) {
       const fallback = buildLocalResponse({ messages, retrievedChunks, memoryItems });
       const parts = fallback.split(/(\s+)/).filter(Boolean);
       let fullText = '';
-
       for (const part of parts) {
         fullText += part;
         onToken(part);
-        await wait(10);
+        await wait(8);
       }
-
-      return {
-        content: fullText,
-        provider: 'local-simulation',
-        model: 'local-simulation',
-      };
+      return { content: fullText, provider: 'local-simulation', model: 'local-simulation' };
     }
 
+    // ── Real streaming call ───────────────────────────────────────────────────
     const stream = await getClient().chat.completions.create({
       model: aiConfig.chatModel,
-      temperature: 0.3,
+      temperature: 0.4,
       stream: true,
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages.map(message => ({
-          role: message.role,
-          content: message.content,
-        })),
+        ...messages.map(m => ({ role: m.role, content: m.content })),
       ],
     });
 

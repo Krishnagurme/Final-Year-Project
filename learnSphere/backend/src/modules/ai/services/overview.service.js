@@ -4,7 +4,7 @@ export const getAiOverview = () => ({
       id: 'chat',
       title: 'AI Chat System',
       explanation:
-        'This is the conversation layer. The user sends a message, your backend prepares context, the model writes a response, and the UI streams it back like ChatGPT.',
+        'This is the conversation layer. The user sends a message, your backend prepares context, the model writes a response, and the UI streams it back token by token.',
     },
     {
       id: 'rag',

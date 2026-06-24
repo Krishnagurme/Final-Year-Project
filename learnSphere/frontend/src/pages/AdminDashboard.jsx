@@ -74,6 +74,7 @@ import useAdminData from '../hooks/useAdminData.js';
 import useRuntimeMetrics from '../hooks/useRuntimeMetrics.js';
 import RuntimeMetrics from '../components/RuntimeMetrics.jsx';
 import AdminAssessmentSection from '../components/AdminAssessmentSection.jsx';
+import AdminTopicSection from '../components/AdminTopicSection.jsx';
 
 const formatRelativeTime = value => {
   if (!value) return '—';
@@ -146,6 +147,7 @@ const AdminDashboard = () => {
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseInstructor, setNewCourseInstructor] = useState('');
   const [newCourseCategory, setNewCourseCategory] = useState('');
+  const [selectedCourseForTopics, setSelectedCourseForTopics] = useState(null);
 
   useEffect(() => {
     if (settings) setModelSettings(settings);
@@ -196,8 +198,9 @@ const AdminDashboard = () => {
       await adminService.createCourse({
         title: newCourseTitle,
         description: newCourseTitle,
-        category: newCourseCategory || 'General',
+        category: newCourseCategory || 'Python',
         level: 'BEGINNER',
+        isPublished: true,
       });
       setNewCourseTitle('');
       setNewCourseInstructor('');
@@ -583,65 +586,101 @@ const AdminDashboard = () => {
   // 3. Course Management
   const renderCourses = () => {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white/80 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-xl lg:col-span-2">
-          <h4 className="text-lg font-bold text-slate-800 mb-4">View/Update Courses</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-500 font-semibold">
-                  <th className="pb-3">Title</th>
-                  <th className="pb-3">Instructor</th>
-                  <th className="pb-3">Level</th>
-                  <th className="pb-3">Status</th>
-                  <th className="pb-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {courses.map(c => (
-                  <tr key={c.id} className="hover:bg-slate-50/50">
-                    <td className="py-3 font-semibold text-slate-800">{c.title}</td>
-                    <td className="py-3 text-slate-600">{c.instructor}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-semibold">{c.level}</span>
-                    </td>
-                    <td className="py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        c.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                      }`}>{c.status}</span>
-                    </td>
-                    <td className="py-3 text-right space-x-2">
-                      <button onClick={() => handleDeleteCourse(c.id)} className="text-xs font-bold text-red-650 hover:text-red-800">Delete</button>
-                    </td>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="bg-white/80 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-xl lg:col-span-2">
+            <h4 className="text-lg font-bold text-slate-800 mb-4">View/Update Courses</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-500 font-semibold">
+                    <th className="pb-3">Title</th>
+                    <th className="pb-3">Instructor</th>
+                    <th className="pb-3">Level</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {courses.map(c => (
+                    <tr
+                      key={c.id}
+                      className={`hover:bg-slate-50/50 cursor-pointer ${
+                        selectedCourseForTopics?.id === c.id ? 'bg-indigo-50/60' : ''
+                      }`}
+                      onClick={() => setSelectedCourseForTopics(c)}
+                    >
+                      <td className="py-3 font-semibold text-slate-800">{c.title}</td>
+                      <td className="py-3 text-slate-600">{c.instructor}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-xs font-semibold">{c.level}</span>
+                      </td>
+                      <td className="py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          c.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        }`}>{c.status}</span>
+                      </td>
+                      <td className="py-3 text-right space-x-2">
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedCourseForTopics(c);
+                          }}
+                          className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
+                        >
+                          Topics
+                        </button>
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleDeleteCourse(c.id);
+                          }}
+                          className="text-xs font-bold text-red-650 hover:text-red-800"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-xl">
+            <h4 className="text-lg font-bold text-slate-800 mb-4">Create Course</h4>
+            <form onSubmit={handleAddCourse} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Title</label>
+                <input type="text" className="input" placeholder="e.g. Advanced Javascript" value={newCourseTitle} onChange={e => setNewCourseTitle(e.target.value)} required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Assign Instructor</label>
+                <input type="text" className="input" placeholder="e.g. Dr. Sarah Connor" value={newCourseInstructor} onChange={e => setNewCourseInstructor(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Category</label>
+                <select className="input" value={newCourseCategory} onChange={e => setNewCourseCategory(e.target.value)}>
+                  <option value="Programming">Programming</option>
+                  <option value="Python">Python</option>
+                  <option value="JavaScript">JavaScript</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Artificial Intelligence">Artificial Intelligence</option>
+                  <option value="Database">Database</option>
+                </select>
+              </div>
+              <button type="submit" className="w-full btn btn-primary py-2.5 rounded-xl font-bold">Create Course</button>
+            </form>
           </div>
         </div>
 
         <div className="bg-white/80 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-xl">
-          <h4 className="text-lg font-bold text-slate-800 mb-4">Create Course</h4>
-          <form onSubmit={handleAddCourse} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Title</label>
-              <input type="text" className="input" placeholder="e.g. Advanced Javascript" value={newCourseTitle} onChange={e => setNewCourseTitle(e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Assign Instructor</label>
-              <input type="text" className="input" placeholder="e.g. Dr. Sarah Connor" value={newCourseInstructor} onChange={e => setNewCourseInstructor(e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Category</label>
-              <select className="input" value={newCourseCategory} onChange={e => setNewCourseCategory(e.target.value)}>
-                <option value="Programming">Programming</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Artificial Intelligence">Artificial Intelligence</option>
-                <option value="Database">Database</option>
-              </select>
-            </div>
-            <button type="submit" className="w-full btn btn-primary py-2.5 rounded-xl font-bold">Create Course</button>
-          </form>
+          <AdminTopicSection
+            courseId={selectedCourseForTopics?.id}
+            courseTitle={selectedCourseForTopics?.title || ''}
+          />
         </div>
       </div>
     );
@@ -1028,16 +1067,16 @@ const AdminDashboard = () => {
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Model Selection</label>
               <select className="input" value={modelSettings.activeModel} onChange={e => setModelSettings({ ...modelSettings, activeModel: e.target.value })}>
-                <option value="gpt-4-turbo-preview">gpt-4-turbo-preview</option>
-                <option value="gpt-4o">gpt-4o</option>
-                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                <option value="gpt-4-turbo-preview">Advanced Model</option>
+                <option value="gpt-4o">Standard Model</option>
+                <option value="gpt-3.5-turbo">Economy Model</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Fallback Model Selection</label>
               <select className="input" value={modelSettings.fallbackModel} onChange={e => setModelSettings({ ...modelSettings, fallbackModel: e.target.value })}>
-                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                <option value="gpt-3.5-turbo">Economy Model</option>
+                <option value="gpt-4o-mini">Mini Model</option>
               </select>
             </div>
             <div>
@@ -1243,7 +1282,7 @@ const AdminDashboard = () => {
           <div className="space-y-3">
             <h5 className="text-sm font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2"><Key size={16} /> API Keys</h5>
             <div>
-              <label className="block text-xs font-semibold text-slate-655 mb-1">OpenAI API Key</label>
+              <label className="block text-xs font-semibold text-slate-655 mb-1">AI Service API Key</label>
               <input type="password" value="••••••••••••••••••••••••••••" className="input" disabled />
             </div>
           </div>

@@ -27,8 +27,12 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['STUDENT', 'ADMIN'],
+      enum: ['STUDENT', 'INSTRUCTOR', 'ADMIN'],
       default: 'STUDENT',
+    },
+    completedCoursesCount: {
+      type: Number,
+      default: 0,
     },
     profileImage: {
       type: String,
@@ -69,11 +73,40 @@ const userSchema = new mongoose.Schema(
             ref: 'Lesson',
           },
         ],
+        openedLessons: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Lesson',
+          },
+        ],
+        prerequisiteCompleted: {
+          type: Boolean,
+          default: false,
+        },
+        prerequisiteScore: {
+          type: Number,
+          default: 0,
+        },
+        knowledgeLevel: {
+          type: String,
+          enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', null],
+          default: null,
+        },
+        certificateEligible: {
+          type: Boolean,
+          default: false,
+        },
         certificateObtained: {
           type: Boolean,
           default: false,
         },
         certificateIssuedAt: Date,
+        completedAt: Date,
+        status: {
+          type: String,
+          enum: ['in_progress', 'completed'],
+          default: 'in_progress',
+        },
       },
     ],
     isEmailVerified: {
@@ -113,7 +146,17 @@ const userSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
+// Virtual for full name
+userSchema.virtual('name').get(function() {
+  return `${this.firstName || ''} ${this.lastName || ''}`.trim();
+});
+
 export default mongoose.model('User', userSchema);
+

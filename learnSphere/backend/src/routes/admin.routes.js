@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { authenticate, isAdmin } from '../middleware/auth.js';
+import { authenticate, isAdmin, isInstructorOrAdmin } from '../middleware/auth.js';
 import User from '../models/User.js';
 import Course from '../models/Course.js';
 import Assessment from '../models/Assessment.js';
@@ -152,16 +152,17 @@ router.post('/users/:id/suspend', authenticate, isAdmin, async (req, res) => {
   }
 });
 
-router.get('/courses', authenticate, isAdmin, async (req, res) => {
+router.get('/courses', authenticate, isInstructorOrAdmin, async (req, res) => {
   try {
-    const courses = await Course.find().populate('instructor', 'firstName lastName email');
+    const filter = req.user.role === 'INSTRUCTOR' ? { instructor: req.user.userId } : {};
+    const courses = await Course.find(filter).populate('instructor', 'firstName lastName email');
     res.json({ data: courses });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.post('/courses', authenticate, isAdmin, async (req, res) => {
+router.post('/courses', authenticate, isInstructorOrAdmin, async (req, res) => {
   try {
     const course = await courseService.createCourse(
       {
@@ -170,6 +171,7 @@ router.post('/courses', authenticate, isAdmin, async (req, res) => {
         category: req.body.category || 'General',
         level: req.body.level || 'BEGINNER',
         learningOutcomes: req.body.learningOutcomes || [],
+        isPublished: true,
       },
       req.user.userId
     );
@@ -220,8 +222,8 @@ router.get('/certificates', authenticate, isAdmin, async (req, res) => {
 });
 
 const defaultSettings = {
-  activeModel: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
-  fallbackModel: 'gpt-3.5-turbo',
+  activeModel: process.env.AI_CHAT_MODEL || 'deepseek/deepseek-chat',
+  fallbackModel: 'deepseek/deepseek-chat',
   temperature: 0.7,
   maxTokens: 2000,
   promptTemplate:

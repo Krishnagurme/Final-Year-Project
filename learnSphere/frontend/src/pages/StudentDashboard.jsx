@@ -5,7 +5,7 @@ import CourseCard from '../components/CourseCard.jsx';
 import SkillBadge from '../components/SkillBadge.jsx';
 import { courseService, userService } from '../services/index.js';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Award, BookOpen, Clock, Zap } from 'lucide-react';
+import { TrendingUp, Award, BookOpen, Clock, Zap, ChevronRight } from 'lucide-react';
 
 const emptyStats = {
   skillLevel: 'BEGINNER',
@@ -256,8 +256,77 @@ const StudentDashboard = () => {
           />
         </div>
 
+        {/* Active Enrolled Courses */}
         <div>
-          <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">My Enrolled Courses</h2>
+          {userStats.enrolledCourses.length === 0 ? (
+            <div className="card text-center py-10 bg-slate-50 border border-slate-200 rounded-2xl">
+              <BookOpen className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+              <p className="text-gray-500 font-medium">You are not enrolled in any courses yet.</p>
+              <button 
+                onClick={() => navigate('/student/courses')} 
+                className="btn btn-primary mt-4 mx-auto"
+              >
+                Browse Course Catalog
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userStats.enrolledCourses.map((c) => (
+                <div key={c.courseId} className="card flex flex-col justify-between hover:shadow-xl transition-shadow relative overflow-hidden">
+                  <div className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-blue-600 font-bold border-2 border-blue-100 text-lg">
+                    {c.title ? c.title.charAt(0).toUpperCase() : 'C'}
+                  </div>
+                  <div className="pt-10">
+                    <h3 className="text-lg font-bold text-gray-800 line-clamp-1">{c.title}</h3>
+                    <p className="text-xs text-gray-500 mt-1 uppercase font-semibold tracking-wider">{c.category}</p>
+                    <p className="text-gray-600 text-sm mt-3 line-clamp-2">{c.shortDescription}</p>
+                    
+                    {/* Progress Bar */}
+                    <div className="space-y-2 mt-6">
+                      <div className="flex justify-between text-xs font-bold text-gray-700">
+                        <span>Course Progress</span>
+                        <span>{c.progress}%</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-300"
+                          style={{ width: `${c.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-between items-center gap-4">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      c.status === 'completed' 
+                        ? 'bg-green-50 text-green-700 border border-green-200' 
+                        : !c.prerequisiteCompleted
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                      {c.status === 'completed'
+                        ? 'Completed'
+                        : !c.prerequisiteCompleted
+                          ? 'Prerequisite Pending'
+                          : 'Active'}
+                    </span>
+                    <button
+                      onClick={() => navigate(`/student/courses/${c.courseId}`)}
+                      className="btn btn-primary text-xs py-2 px-4 flex items-center gap-1.5"
+                    >
+                      {c.status === 'completed' ? 'Review Syllabus' : 'Resume Learning'}
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-6 mt-8">
             <h2 className="text-2xl font-bold text-gray-900">Recommended For You</h2>
             <button onClick={() => navigate('/student/courses')} className="btn btn-secondary">
               View all courses

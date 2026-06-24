@@ -1,6 +1,21 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+// Uses AI_BASE_URL / AI_API_KEY from .env (OpenRouter or any OpenAI-compatible gateway)
+const AI_COMPLETIONS_URL =
+  `${process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1'}/chat/completions`;
+
+const getAiHeaders = () => ({
+  Authorization: `Bearer ${process.env.AI_API_KEY || process.env.OPENAI_API_KEY || ''}`,
+  'Content-Type': 'application/json',
+  ...(process.env.AI_BASE_URL?.includes('openrouter.ai')
+    ? { 'HTTP-Referer': 'https://learnsphere.app', 'X-Title': 'LearnSphere' }
+    : {}),
+});
+
+const getAiModel = () =>
+  process.env.AI_CHAT_MODEL || process.env.OPENAI_MODEL || 'deepseek/deepseek-chat';
+
+const isAiEnabled = () => Boolean(process.env.AI_API_KEY || process.env.OPENAI_API_KEY);
 
 // Subject-specific knowledge baselines
 const SUBJECT_KNOWLEDGE_AREAS = {
@@ -290,11 +305,11 @@ const LOCAL_QUESTION_BANKS = {
       id: '1',
       question:
         'Which matrix operation is used to solve linear equations using determinant ratios?',
-      options: ['Cramer’s Rule', 'Gaussian Elimination', 'Matrix Inversion', 'LU Decomposition'],
-      correctAnswer: 'Cramer’s Rule',
+      options: ['Cramerâ€™s Rule', 'Gaussian Elimination', 'Matrix Inversion', 'LU Decomposition'],
+      correctAnswer: 'Cramerâ€™s Rule',
       difficulty: 'easy',
       topic: 'Matrices',
-      explanation: 'Cramer’s Rule uses determinants to solve systems of linear equations.',
+      explanation: 'Cramerâ€™s Rule uses determinants to solve systems of linear equations.',
     },
     {
       id: '2',
@@ -368,11 +383,11 @@ const LOCAL_QUESTION_BANKS = {
       id: '3',
       question:
         'Which algorithm is best for finding the shortest path in a weighted graph with non-negative edges?',
-      options: ['Dijkstra’s Algorithm', 'Bubble Sort', 'Depth-first Search', 'Kruskal’s Algorithm'],
-      correctAnswer: 'Dijkstra’s Algorithm',
+      options: ['Dijkstraâ€™s Algorithm', 'Bubble Sort', 'Depth-first Search', 'Kruskalâ€™s Algorithm'],
+      correctAnswer: 'Dijkstraâ€™s Algorithm',
       difficulty: 'medium',
       topic: 'Graph Algorithms',
-      explanation: 'Dijkstra’s algorithm finds shortest paths in graphs with non-negative weights.',
+      explanation: 'Dijkstraâ€™s algorithm finds shortest paths in graphs with non-negative weights.',
     },
     {
       id: '4',
@@ -540,7 +555,7 @@ function pickVariant(key, modulo) {
   return hashString(String(key)) % modulo;
 }
 
-/** Scenario-style MCQs: different stems and distractors each session — not reordering one template. */
+/** Scenario-style MCQs: different stems and distractors each session â€” not reordering one template. */
 function createDiverseTemplateQuestion(subject, topic, slotIndex, sessionSalt) {
   const key = `${sessionSalt}|${subject}|${topic}|${slotIndex}`;
 
@@ -774,7 +789,7 @@ export const aiService = {
     const personalizationBlock =
       weakTopics.length > 0
         ? `
-Personalization (required — this student already took ${subject} assessments and struggled with specific areas):
+Personalization (required â€” this student already took ${subject} assessments and struggled with specific areas):
 - Weak / low-confidence topics to remediate: ${weakTopics.join('; ')}
 - At least ${Math.max(2, Math.ceil(numberOfQuestions * 0.6))} of the ${numberOfQuestions} questions MUST directly assess those weak topics.
 - Each such question's "topic" field must name the weak area it targets.
@@ -782,7 +797,7 @@ Personalization (required — this student already took ${subject} assessments a
 `
         : '';
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!isAiEnabled()) {
       return {
         success: true,
         questions: getFallbackQuestions(subject, numberOfQuestions, { weakTopics, sessionSalt }),
@@ -795,10 +810,10 @@ Personalization (required — this student already took ${subject} assessments a
       const prompt = `
 Generate a comprehensive prerequisite assessment test for ${subject}.
 
-Instance identifier (vary scenarios, names, numbers, and framing using this — do NOT produce the same paper as a generic template): ${sessionSalt}
+Instance identifier (vary scenarios, names, numbers, and framing using this â€” do NOT produce the same paper as a generic template): ${sessionSalt}
 
 Anti-reuse rules:
-- Every question must be a distinct scenario, comparison, or application — not a trivial reorder of "which defines X".
+- Every question must be a distinct scenario, comparison, or application â€” not a trivial reorder of "which defines X".
 - Do not copy well-known textbook drill stems verbatim; rephrase and embed each idea in a short context (one or two sentences max).
 - Wrong options must be plausible mistakes a student makes in ${subject}, not nonsense.
 
@@ -828,14 +843,14 @@ Respond with ONLY valid JSON in this exact format:
 `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
               content:
-                'You are an expert educational test designer. Produce a genuinely new exam each time: different scenarios, contexts, and distractors — never shuffle the same stems. Wrong answers must be plausible student errors. Always respond with valid JSON only.',
+                'You are an expert educational test designer. Produce a genuinely new exam each time: different scenarios, contexts, and distractors â€” never shuffle the same stems. Wrong answers must be plausible student errors. Always respond with valid JSON only.',
             },
             {
               role: 'user',
@@ -847,8 +862,8 @@ Respond with ONLY valid JSON in this exact format:
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -879,7 +894,7 @@ Respond with ONLY valid JSON in this exact format:
   },
 
   async evaluatePrerequisites(answers, subject, courseLevel) {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!isAiEnabled()) {
       return buildFallbackEvaluation(answers, subject, courseLevel);
     }
 
@@ -924,9 +939,9 @@ Respond with ONLY valid JSON in this exact format:
       `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
@@ -943,8 +958,8 @@ Respond with ONLY valid JSON in this exact format:
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -1027,9 +1042,9 @@ Respond with ONLY valid JSON in this exact format:
       `;
 
       const response = await axios.post(
-        OPENAI_API_URL,
+        AI_COMPLETIONS_URL,
         {
-          model: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+          model: getAiModel(),
           messages: [
             {
               role: 'system',
@@ -1046,8 +1061,8 @@ Respond with ONLY valid JSON in this exact format:
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
+            ...getAiHeaders(),
+            
           },
         }
       );
@@ -1076,7 +1091,7 @@ Respond with ONLY valid JSON in this exact format:
   },
 
   async scoreAssessment(assessment, courseId, subject) {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!isAiEnabled()) {
       const fallback = buildFallbackEvaluation(assessment, subject, courseId);
       return {
         ...fallback,
@@ -1123,15 +1138,48 @@ Respond with ONLY valid JSON in this exact format:
       }
       `;
 
-      // Validate and normalize skill level
-      const rawScore = 0; // Placeholder
-      const score = 0; // Placeholder score
-      let recommendedLevel = 'BEGINNER';
+      const response = await axios.post(
+        AI_COMPLETIONS_URL,
+        {
+          model: getAiModel(),
+          messages: [
+            {
+              role: 'system',
+              content:
+                'You are an expert educational assessor. Evaluate performance fairly and provide constructive, detailed feedback. Always respond with valid JSON only.',
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.5,
+          max_tokens: 2000,
+        },
+        {
+          headers: {
+            ...getAiHeaders(),
+            
+          },
+        }
+      );
+
+      const content = response.data.choices[0].message.content;
+      const result = JSON.parse(content);
+
+      // Normalise skill level based on numeric score
+      const score = typeof result.score === 'number' ? result.score : parseFloat(result.score) || 0;
+      if (score >= SKILL_THRESHOLDS.ADVANCED.min) {
+        result.skillLevel = 'ADVANCED';
+      } else if (score >= SKILL_THRESHOLDS.INTERMEDIATE.min) {
+        result.skillLevel = 'INTERMEDIATE';
+      } else {
+        result.skillLevel = 'BEGINNER';
+      }
 
       return {
-        success: true,
-        score: rawScore,
-        recommendedLevel,
+        ...result,
+        skillLevelRange: SKILL_THRESHOLDS[result.skillLevel],
         subject,
         timestamp: new Date().toISOString(),
       };
@@ -1147,3 +1195,4 @@ Respond with ONLY valid JSON in this exact format:
     }
   },
 };
+

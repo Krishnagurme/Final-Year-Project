@@ -96,9 +96,10 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
     const totalCourses = enrolledCourses.length;
 
     const completedCourses = enrolledCourses.filter(course => {
-      const p = course.progress || 0;
-      return p >= 100 || course.certificateObtained === true;
+      return course.status === 'completed' || (course.progress || 0) >= 100;
     }).length;
+
+    const completedCoursesFromProfile = user.completedCoursesCount || completedCourses;
 
     const courseHours = enrolledCourses.reduce((total, course) => {
       const doc = course.courseId;
@@ -147,7 +148,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
       data: {
         skillLevel,
         totalCourses,
-        completedCourses,
+        completedCourses: completedCoursesFromProfile,
         completedAssessments,
         hoursLearned,
         averageCourseProgress,
@@ -165,9 +166,14 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
             level: doc?.level || 'BEGINNER',
             durationMinutes: doc?.duration || 0,
             progress: p,
+            prerequisiteCompleted: !!course.prerequisiteCompleted,
+            prerequisiteScore: course.prerequisiteScore || 0,
+            knowledgeLevel: course.knowledgeLevel || null,
+            certificateEligible: !!course.certificateEligible,
             certificateObtained: !!course.certificateObtained,
             certificateIssuedAt: course.certificateIssuedAt || null,
-            status: p >= 100 || course.certificateObtained ? 'completed' : 'in_progress',
+            status: course.status || (p >= 100 ? 'completed' : 'in_progress'),
+            completedAt: course.completedAt || null,
             enrolledAt: course.enrolledAt,
           };
         }),

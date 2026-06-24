@@ -7,13 +7,15 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://backend:5000',
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
         changeOrigin: true,
+        secure: false,
       },
     },
   },
   build: {
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 1600,
   },
 });

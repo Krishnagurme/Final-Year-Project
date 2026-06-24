@@ -1,12 +1,22 @@
+import OpenAI from 'openai';
 import AITutor from '../models/AITutor.js';
-import { Configuration, OpenAIApi } from 'openai';
-import { v4 as uuidv4 } from 'uuid';
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy-initialise so the module loads even when the key is absent
+let _client = null;
+const getClient = () => {
+  if (!_client) {
+    _client = new OpenAI({
+      apiKey: process.env.AI_API_KEY || process.env.OPENAI_API_KEY,
+      baseURL: process.env.AI_BASE_URL || undefined,
+      defaultHeaders: process.env.AI_BASE_URL?.includes('openrouter.ai')
+        ? { 'HTTP-Referer': 'https://learnsphere.app', 'X-Title': 'LearnSphere' }
+        : {},
+    });
+  }
+  return _client;
+};
 
-const openai = new OpenAIApi(configuration);
+const CHAT_MODEL = process.env.AI_CHAT_MODEL || 'deepseek/deepseek-chat';
 
 class AITutorService {
   // Create a new AI tutor session
@@ -15,14 +25,16 @@ class AITutorService {
       userId,
       subject,
       courseId,
-      messages: [{
-        role: 'system',
-        content: `You are a helpful ${subject} tutor. Your goal is to help the student learn in an interactive and engaging way. 
-                 Ask questions to understand their current level and learning style. Provide explanations, examples, and practice 
-                 problems as needed.`
-      }]
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful ${subject} tutor. Your goal is to help the student learn in an interactive and engaging way. 
+                   Ask questions to understand their current level and learning style. Provide explanations, examples, and practice 
+                   problems as needed.`,
+        },
+      ],
     });
-    
+
     return await session.save();
   }
 
@@ -35,19 +47,19 @@ class AITutorService {
   static async getUserSessions(userId, { limit = 10, page = 1, isActive } = {}) {
     const query = { userId };
     if (isActive !== undefined) query.isActive = isActive;
-    
+
     const sessions = await AITutor.find(query)
       .sort({ updatedAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
-      
+
     const total = await AITutor.countDocuments(query);
-    
+
     return {
       sessions,
       total,
       page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -62,35 +74,36 @@ class AITutorService {
     session.messages.push({
       role: 'user',
       content: message,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
-    // Get AI response
-    const response = await openai.createChatCompletion({
-      model: 'gpt-4',
-      messages: session.messages.map(m => ({
-        role: m.role,
-        content: m.content
-      })),
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
+    let aiContent;
 
-    const aiMessage = response.data.choices[0].message;
-    
+    if (!process.env.AI_API_KEY && !process.env.OPENAI_API_KEY) {
+      aiContent = `I am your ${session.subject} tutor. I received your message: "${message}". (AI service is currently offline — please check your configuration to enable live responses.)`;
+    } else {
+      const response = await getClient().chat.completions.create({
+        model: CHAT_MODEL,
+        messages: session.messages.map(m => ({ role: m.role, content: m.content })),
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+      aiContent = response.choices[0].message.content;
+    }
+
     // Add AI response to the conversation
     session.messages.push({
       role: 'assistant',
-      content: aiMessage.content,
-      timestamp: new Date()
+      content: aiContent,
+      timestamp: new Date(),
     });
-    
+
     session.updatedAt = new Date();
     await session.save();
-    
+
     return {
-      message: aiMessage.content,
-      sessionId: session._id
+      message: aiContent,
+      sessionId: session._id,
     };
   }
 
@@ -100,11 +113,11 @@ class AITutorService {
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     session.isActive = false;
     session.endedAt = new Date();
     await session.save();
-    
+
     return session;
   }
 
@@ -114,21 +127,26 @@ class AITutorService {
     if (!session) {
       throw new Error('Session not found');
     }
-    
-    const response = await openai.createChatCompletion({
-      model: 'gpt-4',
+
+    if (!process.env.AI_API_KEY && !process.env.OPENAI_API_KEY) {
+      return `Summary for ${session.subject} session (${session.messages.length - 1} messages exchanged). AI service not configured — live summaries unavailable.`;
+    }
+
+    const response = await getClient().chat.completions.create({
+      model: CHAT_MODEL,
       messages: [
-        ...session.messages,
+        ...session.messages.map(m => ({ role: m.role, content: m.content })),
         {
           role: 'system',
-          content: 'Please provide a concise summary of this tutoring session, including key concepts covered, areas of strength, and suggestions for further study.'
-        }
+          content:
+            'Please provide a concise summary of this tutoring session, including key concepts covered, areas of strength, and suggestions for further study.',
+        },
       ],
       temperature: 0.5,
       max_tokens: 500,
     });
-    
-    return response.data.choices[0].message.content;
+
+    return response.choices[0].message.content;
   }
 }
 

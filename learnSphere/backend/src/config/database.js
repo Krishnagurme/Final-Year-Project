@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import dns from 'dns';
 import { seedDatabase } from '../utils/seed.js';
+
+// Force Node to use Google's public DNS to bypass local resolver SRV lookup issues
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 let mongoServer;
 

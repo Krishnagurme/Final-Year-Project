@@ -46,7 +46,10 @@ const StudentSidebar = ({ isOpen, onClose }) => {
         const stats = statsRes.status === 'fulfilled' ? statsRes.value.data?.data : null;
         const enrolled = stats?.enrolledCourses || [];
         const certs = enrolled.filter(
-          course => (course.progress || 0) >= 100 || course.certificateObtained
+          course =>
+            course.certificateEligible ||
+            (course.progress || 0) >= 100 ||
+            course.certificateObtained
         ).length;
         const aiOk =
           aiRes.status === 'fulfilled' && aiRes.value?.status === 200 && aiRes.value?.data != null;

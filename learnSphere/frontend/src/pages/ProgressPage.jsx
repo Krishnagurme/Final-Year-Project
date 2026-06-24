@@ -231,6 +231,58 @@ const ProgressPage = () => {
         </div>
 
         <div className="card">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">Per-course progress</h2>
+          {(stats?.enrolledCourses || []).length === 0 ? (
+            <p className="text-sm text-gray-600">Enroll in a course to track topic-level progress here.</p>
+          ) : (
+            <div className="space-y-4">
+              {stats.enrolledCourses.map(course => (
+                <div key={course.courseId} className="rounded-xl border border-gray-200 p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{course.title}</h3>
+                      <p className="text-xs text-gray-500">
+                        {course.prerequisiteCompleted
+                          ? `Knowledge level: ${course.knowledgeLevel || 'N/A'} · Prerequisite: ${course.prerequisiteScore || 0}%`
+                          : 'Prerequisite assessment pending'}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex self-start px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        course.status === 'completed'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}
+                    >
+                      {course.status === 'completed' ? 'Completed' : 'In Progress'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                    <span>Progress</span>
+                    <span>{course.progress || 0}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        course.status === 'completed'
+                          ? 'bg-gradient-to-r from-emerald-500 to-green-600'
+                          : 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                      }`}
+                      style={{ width: `${course.progress || 0}%` }}
+                    />
+                  </div>
+                  {course.certificateEligible && !course.certificateObtained && (
+                    <p className="text-xs text-emerald-600 font-semibold mt-2">
+                      Certificate eligible — claim it from the Certificates page.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card">
           <h2 className="mb-4 text-xl font-semibold text-gray-900">Milestones</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {progressData.recentAchievements.map(achievement => (

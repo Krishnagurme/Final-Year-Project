@@ -72,14 +72,19 @@ export const memoryService = {
         await existing.save();
         results.push(existing);
       } else {
-        const created = await AiMemoryEntry.create({
-          userId,
-          sessionId,
-          kind: candidate.kind,
-          content: candidate.content,
-          score: 0.75,
-        });
-        results.push(created);
+        try {
+          const created = await AiMemoryEntry.create({
+            userId,
+            sessionId,
+            kind: candidate.kind,
+            content: candidate.content,
+            score: 0.75,
+          });
+          results.push(created);
+        } catch (err) {
+          // Ignore E11000 duplicate key — another request already inserted it
+          if (err.code !== 11000) throw err;
+        }
       }
     }
 

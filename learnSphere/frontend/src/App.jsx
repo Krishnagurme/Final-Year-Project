@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import StudentDashboard from './pages/StudentDashboard.jsx';
 import StudentCoursesPage from './pages/StudentCoursesPage.jsx';
+import StudentCourseDetail from './pages/StudentCourseDetail.jsx';
 import AIAssessmentPage from './pages/AIAssessmentPage.jsx';
 import SkillLevelPage from './pages/SkillLevelPage.jsx';
 import ProgressPage from './pages/ProgressPage.jsx';
@@ -19,13 +20,29 @@ import StudentNotesPage from './pages/StudentNotesPage.jsx';
 import AIWorkspacePage from './pages/AIWorkspacePage.jsx';
 import SaaSNavbarMockup from './components/SaaSNavbarMockup.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import CertificateVerifyPage from './pages/CertificateVerifyPage.jsx';
 
 function GuestRoute({ children }) {
   const { isAuthenticated, user } = useSelector(state => state.auth);
 
   if (isAuthenticated && user) {
     if (user.role === 'STUDENT') return <Navigate to="/student/dashboard" replace />;
-    if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'ADMIN' || user.role === 'INSTRUCTOR') return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { isAuthenticated, user } = useSelector(state => state.auth);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!['ADMIN', 'INSTRUCTOR'].includes(user?.role)) {
+    if (user?.role === 'STUDENT') return <Navigate to="/student/dashboard" />;
+    return <Navigate to="/login" />;
   }
 
   return children;
@@ -40,7 +57,7 @@ function ProtectedRoute({ children, requiredRole }) {
 
   if (requiredRole && user?.role !== requiredRole) {
     if (user?.role === 'STUDENT') return <Navigate to="/student/dashboard" />;
-    if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" />;
+    if (user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR') return <Navigate to="/admin/dashboard" />;
     return <Navigate to="/login" />;
   }
 
@@ -56,7 +73,7 @@ function HomeRedirect() {
 
   // Redirect authenticated users to their appropriate dashboard
   if (user?.role === 'STUDENT') return <Navigate to="/student/dashboard" />;
-  if (user?.role === 'ADMIN') return <Navigate to="/admin/dashboard" />;
+  if (user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR') return <Navigate to="/admin/dashboard" />;
   return <Navigate to="/login" />;
 }
 
@@ -111,14 +128,15 @@ function AppRoutes() {
           }
         />
         <Route path="/navbar-mockup" element={<SaaSNavbarMockup />} />
+        <Route path="/certificate/verify/:token" element={<CertificateVerifyPage />} />
 
         {/* Admin Route */}
         <Route
           path="/admin/dashboard"
           element={
-            <ProtectedRoute requiredRole="ADMIN">
+            <AdminRoute>
               <AdminDashboard />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
 
@@ -136,6 +154,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="STUDENT">
               <StudentCoursesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/courses/:courseId"
+          element={
+            <ProtectedRoute requiredRole="STUDENT">
+              <StudentCourseDetail />
             </ProtectedRoute>
           }
         />

@@ -244,7 +244,7 @@ const DeepTutorPage = () => {
                 Click "Open Full Interface" to launch the complete DeepTutor chat experience in a new tab.
               </p>
               <div className="text-sm text-gray-500 space-y-1">
-                <p>✅ AI-powered conversations</p>
+                <p>✅ Intelligent conversations</p>
                 <p>✅ Web search integration</p>
                 <p>✅ Code execution</p>
                 <p>✅ Math problem solving</p>
