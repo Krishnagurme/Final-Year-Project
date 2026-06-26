@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AI-powered Learning Management Platform",
   "private": true,
+  "type": "module",
   "scripts": {
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
