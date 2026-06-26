@@ -48,20 +48,65 @@ export const assessmentService = {
   // Evaluate prerequisites and get AI assessment
   evaluatePrerequisites: data => api.post('/assessments/evaluate-prerequisites', data),
 
-  // Generate personalized learning path
-  generateLearningPath: data => api.post('/assessments/generate-learning-path', data),
-
-  // Submit assessment for evaluation
+  // Submit assessment and update progress
   submitAssessment: data => api.post('/assessments/submit-assessment', data),
 
-  // Get assessment results
-  getResults: id => api.get(`/assessments/results/${id}`),
-
-  // Get user's assessment history
+  // Get my assessments
   getMyAssessments: () => api.get('/assessments/my-assessments'),
 
-  // Get assessment analytics and history
-  getAnalytics: () => api.get('/assessments/history/analytics'),
+  // Get assessment history analytics
+  getHistoryAnalytics: () => api.get('/assessments/history/analytics'),
+
+  // Get analytics
+  getAnalytics: () => api.get('/assessments/analytics'),
+};
+
+export const xpService = {
+  // Get gamification stats
+  getStats: () => api.get('/xp/stats'),
+
+  // Add XP (for testing)
+  addXP: (xpAmount, reason) => api.post('/xp/add', { xpAmount, reason }),
+
+  // Update learning streak
+  updateStreak: () => api.post('/xp/streak'),
+
+  // Update topic progress
+  updateTopicProgress: data => api.post('/xp/topic-progress', data),
+
+  // Get topic progress for a course
+  getTopicProgress: courseId => api.get(`/xp/topic-progress/${courseId}`),
+
+  // Get achievements
+  getAchievements: () => api.get('/xp/achievements'),
+
+  // Get leaderboard
+  getLeaderboard: (limit = 10) => api.get(`/xp/leaderboard?limit=${limit}`),
+};
+
+export const topicQuizService = {
+  // Generate topic quiz
+  generateQuiz: data => api.post('/topic-quiz/generate', data),
+
+  // Get topic quiz
+  getQuiz: (courseId, topicId) => api.get(`/topic-quiz/${courseId}/${topicId}`),
+
+  // Submit topic quiz
+  submitQuiz: data => api.post('/topic-quiz/submit', data),
+
+  // Get all topic quizzes for a course
+  getCourseQuizzes: courseId => api.get(`/topic-quiz/course/${courseId}`),
+};
+
+export const finalAssessmentService = {
+  // Generate final assessment
+  generateAssessment: data => api.post('/final-assessment/generate', data),
+
+  // Submit final assessment
+  submitAssessment: data => api.post('/final-assessment/submit', data),
+
+  // Check eligibility for final assessment
+  checkEligibility: courseId => api.get(`/final-assessment/eligibility/${courseId}`),
 };
 
 export const analyticsService = {

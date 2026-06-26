@@ -60,6 +60,9 @@ import assessmentRoutes from './routes/assessment.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import certificateRoutes from './routes/certificate.routes.js';
+import xpRoutes from './routes/xp.routes.js';
+import topicQuizRoutes from './routes/topicQuiz.routes.js';
+import finalAssessmentRoutes from './routes/finalAssessment.routes.js';
 import { initAdminSocket } from './realtime/adminSocket.js';
 
 app.use('/api/auth', authRoutes);
@@ -72,6 +75,9 @@ app.use('/api/assessments', assessmentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/xp', xpRoutes);
+app.use('/api/topic-quiz', topicQuizRoutes);
+app.use('/api/final-assessment', finalAssessmentRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

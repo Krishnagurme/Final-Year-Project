@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/Layout.jsx';
 import { assessmentService, courseService, userService } from '../services/index.js';
+import AIFeedbackCard from '../components/AIFeedbackCard.jsx';
 import {
   AlertCircle,
   BarChart3,
@@ -615,6 +616,9 @@ const AIAssessmentPage = () => {
               <p className="text-gray-600">No topic data available.</p>
             )}
           </div>
+
+          {/* AI Feedback Card */}
+          <AIFeedbackCard feedback={results} loading={loading} />
 
           <div className="flex justify-center gap-3">
             <button

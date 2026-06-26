@@ -6,6 +6,7 @@ import {
   scorePrerequisiteAnswers,
   PREREQUISITE_QUESTION_COUNT,
 } from '../constants/prerequisiteQuestions.js';
+import { xpService } from '../../../services/xp.service.js';
 
 export const prerequisiteService = {
   async getQuestions(courseId) {
@@ -58,6 +59,16 @@ export const prerequisiteService = {
     enrolled.prerequisiteScore = score;
     enrolled.knowledgeLevel = knowledgeLevel;
 
+    // Award XP for completing prerequisite test
+    const xpReward = Math.round(score / 2); // 0-50 XP based on score
+    await xpService.addXP(studentId, xpReward, 'prerequisite_test');
+
+    // Update learning streak
+    await xpService.updateLearningStreak(studentId);
+
+    // Unlock first quiz achievement
+    await xpService.unlockAchievement(studentId, 'FIRST_QUIZ');
+
     await PrerequisiteAttempt.create({
       studentId,
       courseId,
@@ -70,12 +81,16 @@ export const prerequisiteService = {
 
     await user.save();
 
+    // Get updated user stats
+    const gamificationStats = await xpService.getGamificationStats(studentId);
+
     return {
       score,
       knowledgeLevel,
       totalQuestions,
       correctCount,
       message: `Prerequisite assessment completed! Score: ${score}% (${knowledgeLevel})`,
+      gamification: gamificationStats,
     };
   },
 };

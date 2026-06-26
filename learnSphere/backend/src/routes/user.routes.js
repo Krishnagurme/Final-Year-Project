@@ -68,13 +68,19 @@ router.post('/update-assessment-progress', authenticate, async (req, res) => {
 
 router.get('/dashboard-stats', authenticate, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    
+    console.log('Fetching dashboard stats for user ID:', userId);
     
     const user = await User.findById(userId)
       .populate('enrolledCourses.courseId')
       .select('-password');
     
     if (!user) {
+      console.log('User not found with ID:', userId);
       return res.json({
         message: 'Dashboard statistics fetched successfully',
         data: {
@@ -92,8 +98,38 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
       });
     }
 
+    console.log('User found:', user.email);
+    console.log('Enrolled courses count:', (user.enrolledCourses || []).length);
+    console.log('Enrolled courses:', JSON.stringify(user.enrolledCourses, null, 2));
+
     const enrolledCourses = user.enrolledCourses || [];
     const totalCourses = enrolledCourses.length;
+
+    // If user has no enrolled courses, return empty stats with helpful message
+    if (totalCourses === 0) {
+      console.log('User has no enrolled courses, returning empty stats');
+      return res.json({
+        message: 'Dashboard statistics fetched successfully',
+        data: {
+          skillLevel: user.skillLevel || 'BEGINNER',
+          totalCourses: 0,
+          completedCourses: 0,
+          completedAssessments: (user.assessmentHistory || []).length,
+          hoursLearned: user.totalHoursLearned || 0,
+          averageCourseProgress: 0,
+          averageAssessmentScore: 0,
+          overallProgressPercent: 0,
+          enrolledCourses: [],
+          assessmentHistory: (user.assessmentHistory || []).map(h => ({
+            subject: h.subject,
+            score: h.score,
+            skillLevel: h.skillLevel,
+            completedAt: h.completedAt,
+            weakTopics: h.weakTopics || [],
+          })),
+        },
+      });
+    }
 
     const completedCourses = enrolledCourses.filter(course => {
       return course.status === 'completed' || (course.progress || 0) >= 100;

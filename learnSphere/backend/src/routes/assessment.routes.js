@@ -73,13 +73,18 @@ router.post(
         return res.status(400).json({ message: 'Subject is required' });
       }
 
-      const user = await User.findById(req.user.userId).select('assessmentHistory').lean();
+      const userId = req.user.id || req.user.userId || req.user._id;
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID not found in token' });
+      }
+      
+      const user = await User.findById(userId).select('assessmentHistory').lean();
       const weakTopicsFromHistory = collectWeakTopicsFromHistory(
         user?.assessmentHistory,
         subject.trim()
       );
 
-      const sessionSalt = `${req.user.userId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const sessionSalt = `${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       const testData = await aiService.generateDynamicTest(subject, numberOfQuestions, {
         weakTopics: weakTopicsFromHistory,
         sessionSalt,
@@ -193,8 +198,13 @@ router.post(
       const aiEvaluation = await aiService.scoreAssessment(answers, courseId, subject);
 
       // Create and save assessment record
+      const userId = req.user.id || req.user.userId || req.user._id;
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID not found in token' });
+      }
+      
       const assessment = new Assessment({
-        studentId: req.user.userId,
+        studentId: userId,
         courseId,
         type: 'PREREQUISITE',
         answers: answers.map((ans, idx) => ({
@@ -222,7 +232,7 @@ router.post(
       await assessment.save();
 
       // Update user skill level
-      await User.findByIdAndUpdate(req.user.userId, {
+      await User.findByIdAndUpdate(userId, {
         skillLevel: aiEvaluation.skillLevel,
       });
 
@@ -243,6 +253,11 @@ router.post(
 // Get assessment results
 router.get('/results/:assessmentId', authenticate, async (req, res) => {
   try {
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    
     const assessment = await Assessment.findById(req.params.assessmentId).populate(
       'studentId',
       'firstName lastName email'
@@ -253,7 +268,7 @@ router.get('/results/:assessmentId', authenticate, async (req, res) => {
     }
 
     // Verify ownership
-    if (assessment.studentId._id.toString() !== req.user.userId) {
+    if (assessment.studentId._id.toString() !== userId) {
       return res.status(403).json({ message: 'Unauthorized access' });
     }
 
@@ -270,7 +285,12 @@ router.get('/results/:assessmentId', authenticate, async (req, res) => {
 // Get all assessments for current user
 router.get('/my-assessments', authenticate, isStudent, async (req, res) => {
   try {
-    const assessments = await Assessment.find({ studentId: req.user.userId })
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    
+    const assessments = await Assessment.find({ studentId: userId })
       .select('-answers')
       .sort({ createdAt: -1 })
       .limit(10);
@@ -289,7 +309,12 @@ router.get('/my-assessments', authenticate, isStudent, async (req, res) => {
 // Get assessment history with analytics
 router.get('/history/analytics', authenticate, isStudent, async (req, res) => {
   try {
-    const assessments = await Assessment.find({ studentId: req.user.userId })
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    
+    const assessments = await Assessment.find({ studentId: userId })
       .select('score percentage skillLevel createdAt')
       .sort({ createdAt: -1 });
 
@@ -306,6 +331,44 @@ router.get('/history/analytics', authenticate, isStudent, async (req, res) => {
         advanced: assessments.filter(a => a.aiEvaluation?.skillLevel === 'ADVANCED').length,
       },
       recentAssessments: assessments.slice(0, 5),
+    };
+
+    res.json({
+      message: 'Assessment analytics retrieved',
+      data: analytics,
+    });
+  } catch (error) {
+    console.error('Analytics Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get analytics for AI workspace
+router.get('/analytics', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    
+    const assessments = await Assessment.find({ studentId: userId })
+      .select('score percentage skillLevel createdAt subject')
+      .sort({ createdAt: -1 });
+
+    const analytics = {
+      totalAssessments: assessments.length,
+      averageScore:
+        assessments.length > 0
+          ? (assessments.reduce((sum, a) => sum + a.score, 0) / assessments.length).toFixed(2)
+          : 0,
+      highestScore: assessments.length > 0 ? Math.max(...assessments.map(a => a.score)) : 0,
+      skillLevelDistribution: {
+        beginner: assessments.filter(a => a.aiEvaluation?.skillLevel === 'BEGINNER').length,
+        intermediate: assessments.filter(a => a.aiEvaluation?.skillLevel === 'INTERMEDIATE').length,
+        advanced: assessments.filter(a => a.aiEvaluation?.skillLevel === 'ADVANCED').length,
+      },
+      recentAssessments: assessments.slice(0, 5),
+      subjects: [...new Set(assessments.map(a => a.subject).filter(Boolean))],
     };
 
     res.json({

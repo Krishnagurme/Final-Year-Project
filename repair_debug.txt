@@ -1,0 +1,6 @@
+start_found=True
+end_found=True
+start_index=411
+end_index=665
+preview_start='  async generateDynamicTest(subject, numberOfQuestions = 5) {\n    console.log(`Generating ${numberOfQuestions} questions for subject: ${subject}`);\n    // Placeholder logic for generating a dynamic te'
+preview_end=' = 5) {\n    console.log(`Generating ${numberOfQuestions} questions for subject: ${subject}`);\n    // Placeholder logic for generating a dynamic test\n    return { success: true, questions: [] };\n  },\n\n  async evaluatePrerequisites(answers, subject, courseLevel) {\n    console.log(`Evaluating prerequis'

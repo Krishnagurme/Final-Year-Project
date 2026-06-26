@@ -44,9 +44,72 @@ const userSchema = new mongoose.Schema(
     },
     skillLevel: {
       type: String,
-      enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'],
+      enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'],
       default: 'BEGINNER',
     },
+    xp: {
+      type: Number,
+      default: 0,
+    },
+    xpToNextLevel: {
+      type: Number,
+      default: 100,
+    },
+    level: {
+      type: Number,
+      default: 1,
+    },
+    learningStreak: {
+      type: Number,
+      default: 0,
+    },
+    lastActiveDate: {
+      type: Date,
+      default: Date.now,
+    },
+    totalXP: {
+      type: Number,
+      default: 0,
+    },
+    achievements: [
+      {
+        type: {
+          type: String,
+          enum: ['FIRST_QUIZ', 'STREAK_7', 'STREAK_30', 'TOPIC_MASTER', 'COURSE_COMPLETE', 'EXPERT_LEVEL'],
+        },
+        unlockedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    topicProgress: [
+      {
+        courseId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Course',
+        },
+        topicId: {
+          type: String,
+        },
+        topicName: {
+          type: String,
+        },
+        completed: {
+          type: Boolean,
+          default: false,
+        },
+        quizScore: {
+          type: Number,
+          default: 0,
+        },
+        quizAttempts: {
+          type: Number,
+          default: 0,
+        },
+        completedAt: Date,
+      },
+    ],
     prerequisites: [
       {
         type: mongoose.Schema.Types.ObjectId,

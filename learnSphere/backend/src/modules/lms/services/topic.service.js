@@ -12,12 +12,16 @@ async function assertCourseAccess(courseId, userId, role) {
   throw new Error('You do not have permission to manage this course');
 }
 
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+
 export const topicService = {
   async listByCourse(courseId) {
     return Lesson.find({ courseId }).sort({ order: 1 });
   },
 
-  async createTopic(courseId, topicData, userId, role) {
+async createTopic(courseId, topicData, userId, role) {
     const course = await assertCourseAccess(courseId, userId, role);
 
     const order =
@@ -42,6 +46,16 @@ export const topicService = {
       isPublished: topicData.isPublished !== false,
     });
 
+    // Generate PDF for notes
+    if (lesson.notes) {
+      const pdfPath = path.join(__dirname, `../../../../public/pdfs/${lesson._id}.pdf`);
+      const doc = new PDFDocument();
+      doc.pipe(fs.createWriteStream(pdfPath));
+      doc.text(lesson.notes);
+      doc.end();
+      lesson.pdfUrl = `/pdfs/${lesson._id}.pdf`;
+    }
+
     await lesson.save();
     course.lessons.push(lesson._id);
     course.duration = (course.duration || 0) + (lesson.duration || 0);
@@ -50,7 +64,7 @@ export const topicService = {
     return lesson;
   },
 
-  async updateTopic(courseId, topicId, updateData, userId, role) {
+async updateTopic(courseId, topicId, updateData, userId, role) {
     await assertCourseAccess(courseId, userId, role);
 
     const lesson = await Lesson.findOne({ _id: topicId, courseId });
@@ -68,6 +82,16 @@ export const topicService = {
         lesson[field] = updateData[field];
       }
     });
+
+    // Regenerate PDF if notes are updated
+    if (updateData.notes) {
+      const pdfPath = path.join(__dirname, `../../../../public/pdfs/${lesson._id}.pdf`);
+      const doc = new PDFDocument();
+      doc.pipe(fs.createWriteStream(pdfPath));
+      doc.text(updateData.notes);
+      doc.end();
+      lesson.pdfUrl = `/pdfs/${lesson._id}.pdf`;
+    }
 
     await lesson.save();
     return lesson;

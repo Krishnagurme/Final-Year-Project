@@ -5,7 +5,7 @@ import {
   Bot, Brain, Briefcase, Calendar, ChevronRight, Download,
   Lightbulb, Loader2, MessageSquare, Mic, PenLine, Plus,
   Send, Sparkles, Trash2, TrendingUp, Upload, X, Zap,
-  Award, BookOpen, Clock, Target,
+  Award, BookOpen, Clock, Target, MoreVertical,
 } from 'lucide-react';
 import { StudentLayout } from '../components/Layout.jsx';
 import { aiService, userService } from '../services/index.js';
@@ -146,7 +146,7 @@ const Composer = ({ onSend, streaming, placeholder }) => {
 
 // ─── Shared: SessionSidebar ───────────────────────────────────────────────────
 const SessionSidebar = ({ sessions, activeId, onLoad, onNew, onDelete, creating }) => (
-  <div className="w-52 shrink-0 flex flex-col gap-2">
+  <div className="w-52 sm:w-52 shrink-0 flex flex-col gap-2">
     <button onClick={onNew} disabled={creating}
       className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow hover:opacity-90 disabled:opacity-50 transition">
       {creating ? <Loader2 className="animate-spin" size={13} /> : <Plus size={13} />} New Chat
@@ -175,7 +175,7 @@ const SessionSidebar = ({ sessions, activeId, onLoad, onNew, onDelete, creating 
 // ─── Shared: FullChatTab (used by Personal Assistant + AI Tutor) ──────────────
 const FullChatTab = ({ hint, placeholder, sessions, activeId, activeSession,
   streaming, creating, error, onSend, onNew, onLoad, onDelete }) => (
-  <div className="flex gap-4 h-full min-h-0">
+  <div className="flex gap-4 h-full min-h-0 flex-col lg:flex-row">
     <SessionSidebar sessions={sessions} activeId={activeId} onLoad={onLoad} onNew={onNew} onDelete={onDelete} creating={creating} />
     <div className="flex-1 flex flex-col min-h-0 rounded-2xl bg-white/80 border border-slate-200 shadow overflow-hidden">
       {error && <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-xs text-red-700 shrink-0">{error}</div>}
@@ -193,12 +193,12 @@ const FullChatTab = ({ hint, placeholder, sessions, activeId, activeSession,
 const ToolOutput = ({ result, label, accent = 'text-violet-500' }) => {
   if (!result) return null;
   return (
-    <div className="flex-1 overflow-y-auto rounded-2xl bg-white/90 border border-slate-200 shadow p-5 min-h-0">
+    <div className="flex-1 overflow-y-auto rounded-2xl bg-white/90 border border-slate-200 shadow p-4 sm:p-5 min-h-0">
       <div className="flex items-center justify-between mb-3">
         <p className={`text-[9px] font-black uppercase tracking-widest ${accent}`}>{label}</p>
         <button onClick={() => navigator.clipboard?.writeText(result)}
           className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition">
-          <Download size={13} /> Copy
+          <Download size={13} /> <span className="hidden sm:inline">Copy</span>
         </button>
       </div>
       <div className="prose prose-sm max-w-none prose-headings:text-slate-800 prose-code:text-indigo-700 prose-code:bg-indigo-50 prose-code:px-1 prose-code:rounded">
@@ -217,17 +217,29 @@ const NotesTab = ({ onGenerate, streaming }) => {
 
   const go = async () => {
     if (!topic.trim() || busy) return;
+    console.log('Notes generator starting with topic:', topic, 'style:', style);
     setBusy(true); setResult('');
     const prompt = `Generate ${style} study notes for: "${topic}". Use clear headings (##), bullet points, **key terms**, code examples if relevant, and a summary section. Markdown format.`;
-    await onGenerate(prompt, tok => setResult(r => r + tok));
-    setBusy(false);
+    console.log('Sending prompt to AI:', prompt);
+    try {
+      await onGenerate(prompt, tok => {
+        console.log('Received token:', tok.substring(0, 20));
+        setResult(r => r + tok);
+      });
+      console.log('Notes generation completed');
+    } catch (error) {
+      console.error('Notes generation error:', error);
+      setResult(`Error: ${error.message}`);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="flex flex-col gap-4 h-full min-h-0">
-      <div className="shrink-0 rounded-2xl bg-white/90 border border-slate-200 shadow p-5 space-y-4">
+      <div className="shrink-0 rounded-2xl bg-white/90 border border-slate-200 shadow p-4 sm:p-5 space-y-4">
         <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm"><PenLine size={16} className="text-violet-500" /> Notes Generator</h3>
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="sm:col-span-2">
             <label className="text-xs font-semibold text-slate-500 mb-1 block">Topic</label>
             <input value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key==='Enter' && go()}
@@ -303,9 +315,9 @@ Now provide the answer key only. For each question, list the correct option lett
 
   return (
     <div className="flex flex-col gap-4 h-full min-h-0">
-      <div className="shrink-0 rounded-2xl bg-white/90 border border-slate-200 shadow p-5 space-y-4">
+      <div className="shrink-0 rounded-2xl bg-white/90 border border-slate-200 shadow p-4 sm:p-5 space-y-4">
         <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm"><Brain size={16} className="text-amber-500" /> Quiz Generator</h3>
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="sm:col-span-1">
             <label className="text-xs font-semibold text-slate-500 mb-1 block">Topic</label>
             <input value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key==='Enter' && generateQuiz()}
@@ -338,7 +350,7 @@ Now provide the answer key only. For each question, list the correct option lett
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.6fr] h-full min-h-0">
           <ToolOutput result={quizText} label="Quiz Questions" accent="text-amber-500" />
           <div className="flex flex-col gap-4 h-full min-h-0">
-            <div className="rounded-2xl bg-white/90 border border-slate-200 shadow p-5 flex-1 flex flex-col">
+            <div className="rounded-2xl bg-white/90 border border-slate-200 shadow p-4 sm:p-5 flex-1 flex flex-col">
               <label className="text-xs font-semibold text-slate-500 mb-2 block">Student Answers</label>
               <textarea value={studentAnswers} onChange={e => setStudentAnswers(e.target.value)}
                 placeholder="Enter your answers here (e.g. 1. A, 2. C, 3. B)"
@@ -604,6 +616,7 @@ const AIWorkspacePage = () => {
   const [loading, setLoading]               = useState(true);
   const [error, setError]                   = useState('');
   const [selectedDocIds, setSelectedDocIds] = useState([]);
+  const [sidebarOpen, setSidebarOpen]       = useState(false);
 
   // Bootstrap
   useEffect(() => {
@@ -700,11 +713,18 @@ const AIWorkspacePage = () => {
         setSessions(c => [s, ...c]);
         setActiveId(s._id);
         sessId = s._id;
-      } catch { return; }
+      } catch (e) {
+        console.error('Failed to create session:', e);
+        setError('Failed to create AI session. Please try again.');
+        return;
+      }
     }
     try {
       await sseStream({ sessionId: sessId, message: prompt, documentIds: selectedDocIds, onToken });
-    } catch (e) { setError(e.message || 'Generation failed'); }
+    } catch (e) {
+      console.error('Generation failed:', e);
+      setError(e.message || 'Generation failed');
+    }
   };
 
   const generate = makeGenerator();
@@ -770,13 +790,29 @@ const AIWorkspacePage = () => {
 
   return (
     <StudentLayout>
-      <div className="flex gap-0" style={{ height: 'calc(100vh - 130px)', minHeight: 500 }}>
+      <div className="flex gap-0 flex-col lg:flex-row" style={{ height: 'calc(100vh - 130px)', minHeight: 500 }}>
+
+        {/* Mobile Header */}
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-white/80 border border-slate-200 rounded-t-2xl">
+          <div className="flex items-center gap-2.5">
+            <div className={`p-2 rounded-xl bg-gradient-to-br ${tabMeta.bg} shadow shrink-0`}>
+              <Icon size={16} className="text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-black text-slate-900 leading-tight truncate">AI Workspace</p>
+              <p className="text-[10px] text-slate-400 truncate">{tabMeta.label}</p>
+            </div>
+          </div>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition">
+            {sidebarOpen ? <X size={20} /> : <MoreVertical size={20} />}
+          </button>
+        </div>
 
         {/* ── Vertical Nav Sidebar ── */}
-        <aside className="w-56 shrink-0 flex flex-col bg-white/80 border border-slate-200 rounded-2xl shadow-sm mr-4 overflow-hidden">
+        <aside className={`${sidebarOpen ? 'flex' : 'hidden'} lg:flex w-56 shrink-0 flex-col bg-white/80 border border-slate-200 rounded-t-none lg:rounded-2xl shadow-sm lg:mr-4 overflow-hidden absolute lg:relative z-50 lg:z-auto h-full lg:h-auto`}>
 
           {/* Brand header */}
-          <div className="px-4 pt-5 pb-4 border-b border-slate-100">
+          <div className="hidden lg:block px-4 pt-5 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
               <div className={`p-2 rounded-xl bg-gradient-to-br ${tabMeta.bg} shadow shrink-0`}>
                 <Icon size={16} className="text-white" />
@@ -801,7 +837,7 @@ const AIWorkspacePage = () => {
               return (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => { setTab(t.id); setSidebarOpen(false); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left group ${
                     active
                       ? `bg-gradient-to-r ${t.bg} text-white shadow-md`
@@ -825,12 +861,17 @@ const AIWorkspacePage = () => {
           </nav>
 
           {/* Footer hint */}
-          <div className="px-4 py-3 border-t border-slate-100">
+          <div className="hidden lg:block px-4 py-3 border-t border-slate-100">
             <p className="text-[10px] text-slate-400 leading-relaxed">
               Select a tool from the menu to get started.
             </p>
           </div>
         </aside>
+
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
 
         {/* ── Content Panel ── */}
         <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
@@ -885,14 +926,14 @@ const AIWorkspacePage = () => {
                             <span className="text-[10px] uppercase font-bold text-slate-400">Hours</span>
                           </div>
                           <p className="text-xl font-black text-slate-900">{Number(studentStats.hoursLearned || 0).toFixed(1)}</p>
-                          <p className="text-[10px] text-slate-500">learning time</p>
+                          <p className="text-[10px] text-slate-500">total learned</p>
                         </div>
                         <div className="bg-white rounded-xl p-3 border border-blue-100">
                           <div className="flex items-center gap-2 mb-1">
-                            <TrendingUp className="text-purple-500" size={14} />
+                            <Target className="text-purple-500" size={14} />
                             <span className="text-[10px] uppercase font-bold text-slate-400">Progress</span>
                           </div>
-                          <p className="text-xl font-black text-slate-900">{Math.round(studentStats.overallProgressPercent || 0)}%</p>
+                          <p className="text-xl font-black text-slate-900">{studentStats.overallProgressPercent || 0}%</p>
                           <p className="text-[10px] text-slate-500">overall</p>
                         </div>
                       </div>

@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/Layout.jsx';
 import { courseService } from '../services/index.js';
 import { API_BASE_URL } from '../services/api.js';
+import TopicCompletionCard from '../components/TopicCompletionCard.jsx';
+import GamificationCard from '../components/GamificationCard.jsx';
+import FinalAssessmentCard from '../components/FinalAssessmentCard.jsx';
+import TopicQuiz from '../components/TopicQuiz.jsx';
 import { 
   BookOpen, Award, CheckCircle, PlayCircle, Lock, FileText, 
   ExternalLink, ChevronRight, AlertCircle, Check, Loader, Trophy 
@@ -36,6 +40,10 @@ const StudentCourseDetail = () => {
   const [activeTab, setActiveTab] = useState('notes'); // 'notes', 'material', 'pdf', 'references'
   const [completingTopicId, setCompletingTopicId] = useState(null);
   const [accessingTopicId, setAccessingTopicId] = useState(null);
+
+  // Topic Quiz state
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizData, setQuizData] = useState(null);
 
   // Fetch course detail on mount
   const fetchDetail = async () => {
@@ -424,6 +432,9 @@ const StudentCourseDetail = () => {
             </div>
           </div>
 
+          {/* Gamification Card - XP and Level Progress */}
+          <GamificationCard />
+
           {/* Topics List Card */}
           <div className="card p-0 overflow-hidden">
             <div className="px-5 py-4 bg-slate-50 border-b border-gray-200">
@@ -501,6 +512,17 @@ const StudentCourseDetail = () => {
                 Claim Completion Certificate
               </button>
             </div>
+          )}
+
+          {/* Final Assessment Card - Shows when eligible */}
+          {!isCourseCompleted && (
+            <FinalAssessmentCard
+              courseId={courseId}
+              courseName={course.title}
+              onStartAssessment={() => {
+                alert('Final assessment functionality will be implemented');
+              }}
+            />
           )}
 
           {selectedLesson ? (
@@ -713,6 +735,49 @@ const StudentCourseDetail = () => {
                   )}
                 </button>
               </div>
+
+              {/* Topic Completion Card - Shows after completing a topic */}
+              {isLessonCompleted(selectedLesson._id) && !showQuiz && (
+                <TopicCompletionCard
+                  courseId={courseId}
+                  topicId={selectedLesson._id}
+                  topicName={selectedLesson.title}
+                  onQuizStart={(data) => {
+                    setQuizData(data);
+                    setShowQuiz(true);
+                  }}
+                  onContinue={() => {
+                    const lessons = course.lessons || [];
+                    const currentIndex = lessons.findIndex(l => l._id === selectedLesson._id);
+                    if (currentIndex < lessons.length - 1) {
+                      setSelectedLesson(lessons[currentIndex + 1]);
+                      setActiveTab('notes');
+                    } else {
+                      alert('This is the last topic in the course!');
+                    }
+                  }}
+                />
+              )}
+
+              {/* Topic Quiz - Shows when quiz is active */}
+              {showQuiz && quizData && (
+                <TopicQuiz
+                  courseId={courseId}
+                  topicId={selectedLesson._id}
+                  topicName={selectedLesson.title}
+                  quizData={quizData}
+                  onComplete={(results) => {
+                    setShowQuiz(false);
+                    setQuizData(null);
+                    // Don't refresh course data to avoid 404 errors if course was re-seeded
+                    // XP updates will be visible when user navigates or refreshes
+                  }}
+                  onCancel={() => {
+                    setShowQuiz(false);
+                    setQuizData(null);
+                  }}
+                />
+              )}
             </div>
           ) : (
             /* Welcome/Fallback display */

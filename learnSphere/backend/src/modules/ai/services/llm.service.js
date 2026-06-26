@@ -12,6 +12,13 @@ const getClient = () => {
   const currentKey = `${aiConfig.apiKey}||${aiConfig.baseUrl}`;
   if (!_client || _clientKey !== currentKey) {
     _clientKey = currentKey;
+    console.log('Creating new OpenAI client with config:', {
+      baseUrl: aiConfig.baseUrl,
+      chatModel: aiConfig.chatModel,
+      provider: aiConfig.provider,
+      hasApiKey: !!aiConfig.apiKey,
+      apiKeyLength: aiConfig.apiKey?.length || 0
+    });
     _client = new OpenAI({
       apiKey: aiConfig.apiKey,
       baseURL: aiConfig.baseUrl || undefined,
@@ -52,8 +59,17 @@ const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 export const llmService = {
   async streamChatCompletion({ systemPrompt, messages, retrievedChunks = [], memoryItems = [], onToken }) {
 
+    console.log('AI Config Check:', {
+      apiKey: aiConfig.apiKey ? 'Present' : 'Missing',
+      baseUrl: aiConfig.baseUrl,
+      chatModel: aiConfig.chatModel,
+      provider: aiConfig.provider,
+      isRemoteEnabled: isRemoteLlmEnabled()
+    });
+
     // ── Offline fallback ──────────────────────────────────────────────────────
     if (!isRemoteLlmEnabled()) {
+      console.log('Using local fallback - AI API not configured');
       const fallback = buildLocalResponse({ messages, retrievedChunks, memoryItems });
       const parts = fallback.split(/(\s+)/).filter(Boolean);
       let fullText = '';
@@ -65,30 +81,38 @@ export const llmService = {
       return { content: fullText, provider: 'local-simulation', model: 'local-simulation' };
     }
 
+    console.log('Using remote AI provider:', aiConfig.provider);
+
     // ── Real streaming call ───────────────────────────────────────────────────
-    const stream = await getClient().chat.completions.create({
-      model: aiConfig.chatModel,
-      temperature: 0.4,
-      stream: true,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-      ],
-    });
+    try {
+      const stream = await getClient().chat.completions.create({
+        model: aiConfig.chatModel,
+        temperature: 0.4,
+        stream: true,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages.map(m => ({ role: m.role, content: m.content })),
+        ],
+      });
 
-    let content = '';
-    for await (const chunk of stream) {
-      const delta = chunk.choices?.[0]?.delta?.content || '';
-      if (delta) {
-        content += delta;
-        onToken(delta);
+      let content = '';
+      for await (const chunk of stream) {
+        const delta = chunk.choices?.[0]?.delta?.content || '';
+        if (delta) {
+          content += delta;
+          onToken(delta);
+        }
       }
-    }
 
-    return {
-      content,
-      provider: aiConfig.provider,
-      model: aiConfig.chatModel,
-    };
+      console.log('AI streaming completed, content length:', content.length);
+      return {
+        content,
+        provider: aiConfig.provider,
+        model: aiConfig.chatModel,
+      };
+    } catch (error) {
+      console.error('AI streaming error:', error);
+      throw error;
+    }
   },
 };

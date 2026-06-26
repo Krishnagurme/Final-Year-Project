@@ -6,10 +6,15 @@ import { initSse, sendSseEvent } from '../modules/ai/utils/sse.js';
 const router = express.Router();
 
 router.get('/overview', authenticate, async (req, res) => {
+  const userId = req.user.id || req.user.userId || req.user._id;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
+  
   const overview = await aiWorkspaceService.getOverview();
   const [sessions, documents] = await Promise.all([
-    aiWorkspaceService.listSessions(req.user.userId),
-    aiWorkspaceService.listDocuments(req.user.userId),
+    aiWorkspaceService.listSessions(userId),
+    aiWorkspaceService.listDocuments(userId),
   ]);
 
   res.json({
@@ -24,28 +29,48 @@ router.get('/overview', authenticate, async (req, res) => {
 });
 
 router.get('/sessions', authenticate, async (req, res) => {
-  const sessions = await aiWorkspaceService.listSessions(req.user.userId);
+  const userId = req.user.id || req.user.userId || req.user._id;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
+  const sessions = await aiWorkspaceService.listSessions(userId);
   res.json({ data: sessions });
 });
 
 router.post('/sessions', authenticate, async (req, res) => {
-  const session = await aiWorkspaceService.createSession(req.user.userId, req.body);
+  const userId = req.user.id || req.user.userId || req.user._id;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
+  const session = await aiWorkspaceService.createSession(userId, req.body);
   res.status(201).json({ data: session });
 });
 
 router.get('/sessions/:sessionId', authenticate, async (req, res) => {
-  const session = await aiWorkspaceService.getSession(req.user.userId, req.params.sessionId);
+  const userId = req.user.id || req.user.userId || req.user._id;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
+  const session = await aiWorkspaceService.getSession(userId, req.params.sessionId);
   res.json({ data: session });
 });
 
 router.get('/documents', authenticate, async (req, res) => {
-  const documents = await aiWorkspaceService.listDocuments(req.user.userId);
+  const userId = req.user.id || req.user.userId || req.user._id;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
+  const documents = await aiWorkspaceService.listDocuments(userId);
   res.json({ data: documents });
 });
 
 router.get('/assistant-summary', authenticate, async (req, res) => {
   try {
-    const summary = await aiWorkspaceService.getAssistantSummary(req.user.userId);
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    const summary = await aiWorkspaceService.getAssistantSummary(userId);
     res.json({ data: summary });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to generate assistant summary' });
@@ -57,12 +82,21 @@ router.post(
   authenticate,
   uploadMiddleware.single('file'),
   async (req, res) => {
-    const document = await aiWorkspaceService.uploadDocument(req.user.userId, req.file);
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    const document = await aiWorkspaceService.uploadDocument(userId, req.file);
     res.status(201).json({ data: document });
   }
 );
 
 router.post('/sessions/:sessionId/messages/stream', authenticate, async (req, res) => {
+  const userId = req.user.id || req.user.userId || req.user._id;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
+  
   const { message, documentIds = [] } = req.body || {};
 
   if (!message || !message.trim()) {
@@ -74,7 +108,7 @@ router.post('/sessions/:sessionId/messages/stream', authenticate, async (req, re
 
   try {
     const result = await aiWorkspaceService.streamMessage({
-      userId: req.user.userId,
+      userId: userId,
       sessionId: req.params.sessionId,
       message: message.trim(),
       documentIds,
@@ -101,7 +135,11 @@ router.post('/sessions/:sessionId/messages/stream', authenticate, async (req, re
 
 router.delete('/sessions/:sessionId', authenticate, async (req, res) => {
   try {
-    const result = await aiWorkspaceService.deleteSession(req.user.userId, req.params.sessionId);
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    const result = await aiWorkspaceService.deleteSession(userId, req.params.sessionId);
     res.json({ data: result });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -110,7 +148,11 @@ router.delete('/sessions/:sessionId', authenticate, async (req, res) => {
 
 router.delete('/documents/:documentId', authenticate, async (req, res) => {
   try {
-    const result = await aiWorkspaceService.deleteDocument(req.user.userId, req.params.documentId);
+    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token' });
+    }
+    const result = await aiWorkspaceService.deleteDocument(userId, req.params.documentId);
     res.json({ data: result });
   } catch (error) {
     res.status(400).json({ message: error.message });

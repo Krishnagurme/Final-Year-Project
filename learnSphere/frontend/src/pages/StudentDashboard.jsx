@@ -3,6 +3,7 @@ import { StudentLayout } from '../components/Layout.jsx';
 import { ProgressChart, SkillDistributionChart } from '../components/Charts.jsx';
 import CourseCard from '../components/CourseCard.jsx';
 import SkillBadge from '../components/SkillBadge.jsx';
+import GamificationCard from '../components/GamificationCard.jsx';
 import { courseService, userService } from '../services/index.js';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Award, BookOpen, Clock, Zap, ChevronRight } from 'lucide-react';
@@ -243,6 +244,9 @@ const StudentDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Gamification Card */}
+        <GamificationCard />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ProgressChart

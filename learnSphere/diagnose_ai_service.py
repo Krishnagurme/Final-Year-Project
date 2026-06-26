@@ -1,5 +1,5 @@
 from pathlib import Path
-path = Path('backend/src/services/ai.service.js')
+path = Path('learnSphere/backend/src/services/ai.service.js')
 text = path.read_text(encoding='utf-8')
 start_marker = '  async generateDynamicTest(subject, numberOfQuestions = 5) {'
 end_marker = '  async evaluatePrerequisites(answers, subject, courseLevel) {'
