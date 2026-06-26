@@ -271,6 +271,7 @@ const AIAssessmentPage = () => {
         answersWithMetadata,
       });
       setStage('results');
+      setActiveView('results');
       setAttemptNumber(prev => prev + 1);
       await loadAssessmentData();
     } catch (submitError) {
