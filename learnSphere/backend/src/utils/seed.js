@@ -47,6 +47,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Set Theory Basics', url: 'https://www.geeksforgeeks.org/discrete-mathematics-set-theory/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Logic and Propositions',
@@ -56,6 +57,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Propositional Logic', url: 'https://www.geeksforgeeks.org/discrete-mathematics-propositional-logic/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Combinatorics',
@@ -65,6 +67,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Combinatorics', url: 'https://www.geeksforgeeks.org/discrete-mathematics-combinatorics/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Graph Theory',
@@ -74,6 +77,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Graph Theory', url: 'https://www.geeksforgeeks.org/graph-theory/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -92,6 +96,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Linked List', url: 'https://www.geeksforgeeks.org/data-structures/linked-list/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Stacks and Queues',
@@ -101,6 +106,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Stack Data Structure', url: 'https://www.geeksforgeeks.org/stack-data-structure/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Trees and Binary Search Trees',
@@ -110,6 +116,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Binary Search Tree', url: 'https://www.geeksforgeeks.org/binary-search-tree-data-structure/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Sorting Algorithms',
@@ -119,6 +126,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Sorting Algorithms', url: 'https://www.geeksforgeeks.org/sorting-algorithms/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
     ],
   },
@@ -137,6 +145,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Number Systems', url: 'https://www.geeksforgeeks.org/number-system-and-its-conversions/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'CPU Architecture',
@@ -146,6 +155,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'CPU Architecture', url: 'https://www.geeksforgeeks.org/computer-organization-and-architecture/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Memory Organization',
@@ -155,6 +165,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Memory Hierarchy', url: 'https://www.geeksforgeeks.org/computer-memory/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Instruction Set Architecture',
@@ -164,6 +175,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Instruction Set', url: 'https://www.geeksforgeeks.org/instruction-set/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -182,6 +194,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'OOP Basics', url: 'https://www.geeksforgeeks.org/object-oriented-programming-in-python/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Inheritance',
@@ -191,6 +204,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Inheritance', url: 'https://www.geeksforgeeks.org/inheritance-in-python/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Polymorphism',
@@ -200,6 +214,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Polymorphism', url: 'https://www.geeksforgeeks.org/polymorphism-in-python/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Encapsulation and Abstraction',
@@ -209,6 +224,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Encapsulation', url: 'https://www.geeksforgeeks.org/encapsulation-in-python/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -227,6 +243,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Graphics Basics', url: 'https://www.geeksforgeeks.org/computer-graphics/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Line and Circle Drawing',
@@ -236,6 +253,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Line Drawing', url: 'https://www.geeksforgeeks.org/dda-line-generation-algorithm-computer-graphics/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: '2D Transformations',
@@ -245,6 +263,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: '2D Transformations', url: 'https://www.geeksforgeeks.org/2d-transformation-in-computer-graphics/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: '3D Graphics and Rendering',
@@ -254,6 +273,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: '3D Graphics', url: 'https://www.geeksforgeeks.org/3d-computer-graphics/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -272,6 +292,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'DBMS Basics', url: 'https://www.geeksforgeeks.org/database-management-system-dbms/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'ER Modeling',
@@ -281,6 +302,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'ER Model', url: 'https://www.geeksforgeeks.org/entity-relationship-model/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'SQL Fundamentals',
@@ -290,6 +312,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'SQL Basics', url: 'https://www.geeksforgeeks.org/sql-tutorial/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Normalization',
@@ -299,6 +322,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Normalization', url: 'https://www.geeksforgeeks.org/normalization-in-dbms/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -317,6 +341,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'OSI Model', url: 'https://www.geeksforgeeks.org/osi-model/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'IP Addressing and Subnetting',
@@ -326,6 +351,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'IP Addressing', url: 'https://www.geeksforgeeks.org/ip-addressing/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Routing Protocols',
@@ -335,6 +361,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Routing Protocols', url: 'https://www.geeksforgeeks.org/routing-protocols/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Network Security',
@@ -344,6 +371,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Network Security', url: 'https://www.geeksforgeeks.org/network-security/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -362,6 +390,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'SDLC Models', url: 'https://www.geeksforgeeks.org/software-development-life-cycle-sdlc/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Requirements Engineering',
@@ -371,6 +400,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Requirements Engineering', url: 'https://www.geeksforgeeks.org/software-requirements-specification-srs/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Software Testing',
@@ -380,6 +410,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Software Testing', url: 'https://www.geeksforgeeks.org/software-testing/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Project Management',
@@ -389,6 +420,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Project Management', url: 'https://www.geeksforgeeks.org/software-project-management/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -407,6 +439,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'ML Basics', url: 'https://www.geeksforgeeks.org/machine-learning/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Linear Regression',
@@ -416,6 +449,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Linear Regression', url: 'https://www.geeksforgeeks.org/linear-regression/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Classification Algorithms',
@@ -425,6 +459,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Classification', url: 'https://www.geeksforgeeks.org/classification-algorithms/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Clustering',
@@ -434,6 +469,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Clustering', url: 'https://www.geeksforgeeks.org/clustering-in-machine-learning/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -452,6 +488,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Cybersecurity Basics', url: 'https://www.geeksforgeeks.org/cyber-security/', type: 'Reference' },
         ],
+        level: 'BEGINNER',
       },
       {
         title: 'Cryptography',
@@ -461,6 +498,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Cryptography', url: 'https://www.geeksforgeeks.org/cryptography/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Network Security',
@@ -470,6 +508,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Network Security', url: 'https://www.geeksforgeeks.org/network-security/', type: 'Reference' },
         ],
+        level: 'INTERMEDIATE',
       },
       {
         title: 'Ethical Hacking',
@@ -479,6 +518,7 @@ const SAMPLE_COURSES = [
         resources: [
           { title: 'Ethical Hacking', url: 'https://www.geeksforgeeks.org/ethical-hacking/', type: 'Reference' },
         ],
+        level: 'ADVANCED',
       },
     ],
   },
@@ -563,6 +603,7 @@ async function seedSampleCourses() {
         description: topic.description,
         courseId: course._id,
         order: order++,
+        level: topic.level || 'BEGINNER',
         notes: topic.notes,
         content: topic.notes,
         studyMaterial: topic.studyMaterial,

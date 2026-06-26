@@ -151,7 +151,7 @@ export const schemas = {
   }).unknown(false),
 
   generateTest: Joi.object({
-    numberOfQuestions: Joi.number().min(1).max(20).default(5),
+    numberOfQuestions: Joi.number().min(1).max(50).default(5),
   }).unknown(false),
 
   generateLearningPath: Joi.object({

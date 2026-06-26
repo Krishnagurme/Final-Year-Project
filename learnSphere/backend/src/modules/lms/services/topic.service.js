@@ -30,8 +30,10 @@ export const topicService = {
       courseId,
       order,
       notes: topicData.notes || topicData.content || '',
+      notesFileUrl: topicData.notesFileUrl || '',
       content: topicData.content || topicData.notes || 'Topic content',
       studyMaterial: topicData.studyMaterial || '',
+      studyMaterialFileUrl: topicData.studyMaterialFileUrl || '',
       contentType: topicData.contentType || 'TEXT',
       videoUrl: topicData.videoUrl,
       pdfUrl: topicData.pdfUrl,
@@ -59,6 +61,7 @@ export const topicService = {
     const allowed = [
       'title', 'description', 'order', 'notes', 'content', 'studyMaterial',
       'contentType', 'videoUrl', 'pdfUrl', 'duration', 'resources', 'isPublished',
+      'notesFileUrl', 'studyMaterialFileUrl',
     ];
     allowed.forEach(field => {
       if (updateData[field] !== undefined) {

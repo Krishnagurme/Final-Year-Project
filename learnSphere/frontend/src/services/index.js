@@ -29,6 +29,12 @@ export const courseService = {
   updateTopic: (courseId, topicId, data) => api.put(`/courses/${courseId}/topics/${topicId}`, data),
   deleteTopic: (courseId, topicId) => api.delete(`/courses/${courseId}/topics/${topicId}`),
   getPrerequisiteResults: () => api.get('/courses/my/prerequisite-results'),
+  uploadFile: formData =>
+    api.post('/courses/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
 };
 
 export const assessmentService = {

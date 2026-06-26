@@ -2,10 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/Layout.jsx';
 import { courseService } from '../services/index.js';
+import { API_BASE_URL } from '../services/api.js';
 import { 
   BookOpen, Award, CheckCircle, PlayCircle, Lock, FileText, 
   ExternalLink, ChevronRight, AlertCircle, Check, Loader, Trophy 
 } from 'lucide-react';
+
+const getFullFileUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const serverRoot = API_BASE_URL.replace('/api', '');
+  return `${serverRoot}${url}`;
+};
 
 const StudentCourseDetail = () => {
   const { courseId } = useParams();
@@ -45,7 +53,12 @@ const StudentCourseDetail = () => {
         }
       }
     } catch (e) {
-      setError(e.response?.data?.message || e.message || 'Failed to load course details.');
+      if (e.response?.status === 404) {
+        alert('Course not found or database was reset. Redirecting to course catalog...');
+        navigate('/student/courses');
+      } else {
+        setError(e.response?.data?.message || e.message || 'Failed to load course details.');
+      }
     } finally {
       setLoading(false);
     }
@@ -537,6 +550,20 @@ const StudentCourseDetail = () => {
                   <div className="prose max-w-none text-sm text-gray-700 leading-relaxed space-y-4">
                     <p className="font-bold text-gray-800">Lecture Notes:</p>
                     <p>{selectedLesson.notes || selectedLesson.content}</p>
+                    {selectedLesson.notesFileUrl && (
+                      <div className="mt-4 pt-4 border-t border-slate-100">
+                        <p className="text-xs text-slate-500 mb-2">Attached Note Document:</p>
+                        <a
+                          href={getFullFileUrl(selectedLesson.notesFileUrl)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-850 font-bold border border-indigo-200 rounded-xl px-4 py-2.5 bg-indigo-50/20 transition-colors"
+                        >
+                          <FileText size={16} />
+                          View / Download Notes Document
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -549,6 +576,21 @@ const StudentCourseDetail = () => {
                           'Open this material to unlock progress tracking for this topic. Review the content carefully before marking the topic complete.'}
                       </p>
                     </div>
+
+                    {selectedLesson.studyMaterialFileUrl && (
+                      <div className="pt-2">
+                        <p className="text-xs text-slate-500 mb-2">Attached Study Material Document:</p>
+                        <a
+                          href={getFullFileUrl(selectedLesson.studyMaterialFileUrl)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-855 font-bold border border-indigo-200 rounded-xl px-4 py-2.5 bg-indigo-50/20 transition-colors"
+                        >
+                          <FileText size={16} />
+                          Download Study Material Document
+                        </a>
+                      </div>
+                    )}
                     
                     {!isLessonOpened(selectedLesson._id) && (
                       <button
@@ -584,10 +626,10 @@ const StudentCourseDetail = () => {
                     <p className="font-bold text-gray-800">Topic Syllabus Downloads:</p>
                     {selectedLesson.pdfUrl ? (
                       <a
-                        href={selectedLesson.pdfUrl}
+                        href={getFullFileUrl(selectedLesson.pdfUrl)}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold border border-indigo-200 rounded-xl px-4 py-3 bg-indigo-50/20 transition-colors"
+                        className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-860 font-bold border border-indigo-200 rounded-xl px-4 py-3 bg-indigo-50/20 transition-colors"
                       >
                         <FileText size={16} />
                         Download Core Syllabus PDF (Topic Module)
@@ -606,7 +648,7 @@ const StudentCourseDetail = () => {
                         {selectedLesson.resources.map((res, i) => (
                           <a
                             key={i}
-                            href={res.url}
+                            href={getFullFileUrl(res.url)}
                             target="_blank"
                             rel="noreferrer"
                             className="flex items-center justify-between p-3.5 border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/10 rounded-xl transition-all font-semibold text-slate-700"

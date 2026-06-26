@@ -5,8 +5,53 @@ import { prerequisiteService } from '../modules/lms/services/prerequisite.servic
 import { progressService } from '../modules/lms/services/progress.service.js';
 import { authenticate, isAdmin, isInstructorOrAdmin, isStudent } from '../middleware/auth.js';
 import { validateRequest, schemas } from '../middleware/validation.js';
+import User from '../models/User.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const uploadDir = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+});
 
 const router = express.Router();
+
+// Upload file (admin & instructor only)
+router.post('/upload', authenticate, isInstructorOrAdmin, upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(201).json({
+      success: true,
+      url: fileUrl,
+      name: req.file.originalname,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Public Routes
 router.get('/', async (req, res) => {

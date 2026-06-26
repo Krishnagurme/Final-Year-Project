@@ -17,7 +17,16 @@ const lessonSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    level: {
+      type: String,
+      enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'],
+      default: 'BEGINNER',
+    },
     notes: {
+      type: String,
+      default: '',
+    },
+    notesFileUrl: {
       type: String,
       default: '',
     },
@@ -26,6 +35,10 @@ const lessonSchema = new mongoose.Schema(
       required: [true, 'Lesson content is required'],
     },
     studyMaterial: {
+      type: String,
+      default: '',
+    },
+    studyMaterialFileUrl: {
       type: String,
       default: '',
     },

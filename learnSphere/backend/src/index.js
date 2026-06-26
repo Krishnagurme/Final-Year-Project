@@ -6,10 +6,16 @@ import 'express-async-errors';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database.js';
 import { seedDatabase } from './utils/seed.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Middleware
 app.use(helmet());
