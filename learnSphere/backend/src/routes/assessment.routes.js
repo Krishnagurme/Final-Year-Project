@@ -40,7 +40,7 @@ function collectWeakTopicsFromHistory(assessmentHistory, subject, maxTopics = 8)
  */
 router.get('/subjects', authenticate, async (req, res) => {
   try {
-    const subjects = aiService.getSupportedSubjects();
+    const subjects = await aiService.getSupportedSubjects();
     res.json({
       message: 'Assessment subjects retrieved',
       count: subjects.length,
