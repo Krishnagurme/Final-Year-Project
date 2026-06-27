@@ -15,6 +15,10 @@ async function assertCourseAccess(courseId, userId, role) {
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const topicService = {
   async listByCourse(courseId) {
@@ -48,7 +52,11 @@ async createTopic(courseId, topicData, userId, role) {
 
     // Generate PDF for notes
     if (lesson.notes) {
-      const pdfPath = path.join(__dirname, `../../../../public/pdfs/${lesson._id}.pdf`);
+      const pdfDir = path.join(__dirname, `../../../../public/pdfs`);
+      if (!fs.existsSync(pdfDir)) {
+        fs.mkdirSync(pdfDir, { recursive: true });
+      }
+      const pdfPath = path.join(pdfDir, `${lesson._id}.pdf`);
       const doc = new PDFDocument();
       doc.pipe(fs.createWriteStream(pdfPath));
       doc.text(lesson.notes);
@@ -85,7 +93,11 @@ async updateTopic(courseId, topicId, updateData, userId, role) {
 
     // Regenerate PDF if notes are updated
     if (updateData.notes) {
-      const pdfPath = path.join(__dirname, `../../../../public/pdfs/${lesson._id}.pdf`);
+      const pdfDir = path.join(__dirname, `../../../../public/pdfs`);
+      if (!fs.existsSync(pdfDir)) {
+        fs.mkdirSync(pdfDir, { recursive: true });
+      }
+      const pdfPath = path.join(pdfDir, `${lesson._id}.pdf`);
       const doc = new PDFDocument();
       doc.pipe(fs.createWriteStream(pdfPath));
       doc.text(updateData.notes);

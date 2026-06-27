@@ -158,7 +158,7 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
 // Student LMS Workflow Routes
 router.post('/:id/enroll', authenticate, isStudent, async (req, res) => {
   try {
-    const result = await enrollmentService.enrollStudent(req.params.id, req.user.userId);
+    const result = await enrollmentService.enrollStudent(req.params.id, req.user.userId, req.body.answers);
     res.json({
       success: true,
       message: result.alreadyEnrolled ? 'Already enrolled in this course' : 'Enrolled successfully',

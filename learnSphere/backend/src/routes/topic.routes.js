@@ -47,7 +47,8 @@ router.put('/:topicId', authenticate, isInstructorOrAdmin, async (req, res) => {
     );
     res.json({ success: true, data: topic, message: 'Topic updated successfully' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Topic update error:', error);
+    res.status(400).json({ message: error.message, stack: error.stack, full: error.toString() });
   }
 });
 

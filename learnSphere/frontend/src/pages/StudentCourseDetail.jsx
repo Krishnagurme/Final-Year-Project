@@ -28,12 +28,6 @@ const StudentCourseDetail = () => {
   const [enrollment, setEnrollment] = useState(null);
   const [error, setError] = useState('');
   
-  // Prerequisite Quiz state
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [answers, setAnswers] = useState({}); // { questionIndex: selectedOption }
-  const [submittingQuiz, setSubmittingQuiz] = useState(false);
-  const [quizResult, setQuizResult] = useState(null);
-  const [currentQuizStep, setCurrentQuizStep] = useState(0);
 
   // Workspace state
   const [selectedLesson, setSelectedLesson] = useState(null);
@@ -76,63 +70,7 @@ const StudentCourseDetail = () => {
     fetchDetail();
   }, [courseId]);
 
-  // Load prerequisite questions if enrolled but not completed
-  useEffect(() => {
-    if (enrollment && !enrollment.prerequisiteCompleted && quizQuestions.length === 0) {
-      loadPrerequisiteQuestions();
-    }
-  }, [enrollment]);
 
-  const loadPrerequisiteQuestions = async () => {
-    try {
-      const res = await courseService.getPrerequisiteQuestions(courseId);
-      if (res.data?.success) {
-        setQuizQuestions(res.data.questions || []);
-      }
-    } catch (e) {
-      setError('Failed to load prerequisite assessment: ' + e.message);
-    }
-  };
-
-  const handleSelectOption = (qIdx, option) => {
-    setAnswers(prev => ({
-      ...prev,
-      [qIdx]: option
-    }));
-  };
-
-  const handleSubmitQuiz = async () => {
-    // Validate all questions are answered
-    if (Object.keys(answers).length < quizQuestions.length) {
-      alert(`Please answer all ${quizQuestions.length} questions before submitting.`);
-      return;
-    }
-
-    try {
-      setSubmittingQuiz(true);
-      const submittedAnswers = Object.entries(answers).map(([idx, ans]) => ({
-        questionIndex: parseInt(idx),
-        selectedAnswer: ans
-      }));
-
-      const res = await courseService.submitPrerequisiteAnswers(courseId, submittedAnswers);
-      if (res.data?.success) {
-        setQuizResult(res.data);
-      }
-    } catch (e) {
-      alert('Error submitting assessment: ' + e.message);
-    } finally {
-      setSubmittingQuiz(false);
-    }
-  };
-
-  const handleEnterWorkspace = async () => {
-    setQuizResult(null);
-    setQuizQuestions([]);
-    setAnswers({});
-    setCurrentQuizStep(0);
-    await fetchDetail();
-  };
 
   const handleOpenMaterial = async (lessonId) => {
     try {
@@ -227,161 +165,22 @@ const StudentCourseDetail = () => {
     );
   }
 
-  // 1. Prerequisite Quiz workflow - show first, then topics below
-  const showPrerequisiteQuiz = !enrollment.prerequisiteCompleted;
-  const hasNext = currentQuizStep < quizQuestions.length - 1;
-  const currentQuestion = quizQuestions[currentQuizStep];
-  const isAnswered = answers[currentQuizStep] !== undefined;
-
-  if (showPrerequisiteQuiz) {
-    const lessons = course.lessons || [];
-    
+  // Prerequisite guard
+  if (enrollment && !enrollment.prerequisiteCompleted) {
     return (
       <StudentLayout>
-        <div className="max-w-2xl mx-auto my-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <span className="badge badge-intermediate mb-3">Assessment Gate</span>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
-              Prerequisite Knowledge Test
-            </h1>
-            <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-              Please complete this 15-question diagnostic quiz for <strong>{course.title}</strong> to unlock your syllabus workspace.
-            </p>
-          </div>
-
-          {quizResult ? (
-            /* Results Screen */
-            <div className="card text-center p-8 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 border-2 border-indigo-100">
-              <Trophy className="mx-auto h-16 w-16 text-amber-500 mb-4 animate-pulse" />
-              <h2 className="text-2xl font-bold text-gray-900">Assessment Complete!</h2>
-              <p className="text-gray-600 mt-1">Your diagnostics have been registered.</p>
-              
-              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto my-8">
-                <div className="bg-white rounded-xl p-4 border border-indigo-100 shadow-sm">
-                  <p className="text-xs text-gray-400 uppercase font-semibold">Test Score</p>
-                  <p className="text-3xl font-black text-indigo-600 mt-1">{quizResult.score}%</p>
-                </div>
-                <div className="bg-white rounded-xl p-4 border border-indigo-100 shadow-sm">
-                  <p className="text-xs text-gray-400 uppercase font-semibold">Assigned Level</p>
-                  <p className="text-3xl font-black text-purple-600 mt-1">{quizResult.knowledgeLevel}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={handleEnterWorkspace}
-                className="btn btn-primary w-full max-w-xs mx-auto flex items-center justify-center gap-2 py-3"
-              >
-                Enter Course Workspace
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          ) : (
-            /* Quiz Screen */
-            <div className="card space-y-6">
-              {/* Progress bar */}
-              <div className="flex justify-between items-center text-xs font-semibold text-gray-500">
-                <span>Question {currentQuizStep + 1} of {quizQuestions.length}</span>
-                <span>{Math.round(((currentQuizStep) / quizQuestions.length) * 100)}% Answered</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-300"
-                  style={{ width: `${((currentQuizStep + 1) / quizQuestions.length) * 100}%` }}
-                />
-              </div>
-
-              {currentQuestion && (
-                <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-gray-800 leading-snug">
-                    {currentQuestion.question}
-                  </h3>
-
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((option) => {
-                      const isSelected = answers[currentQuizStep] === option;
-                      return (
-                        <button
-                          key={option}
-                          onClick={() => handleSelectOption(currentQuizStep, option)}
-                          className={`w-full text-left px-5 py-4 rounded-xl border font-medium transition-all flex items-center justify-between group ${
-                            isSelected 
-                              ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 shadow-sm' 
-                              : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-gray-700'
-                          }`}
-                        >
-                          <span>{option}</span>
-                          <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                            isSelected 
-                              ? 'border-indigo-600 bg-indigo-600 text-white' 
-                              : 'border-slate-300 group-hover:border-indigo-400 bg-white'
-                          }`}>
-                            {isSelected && <Check size={12} strokeWidth={3} />}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Navigation */}
-              <div className="flex justify-between pt-4 border-t border-gray-100">
-                <button
-                  onClick={() => setCurrentQuizStep(prev => Math.max(0, prev - 1))}
-                  disabled={currentQuizStep === 0}
-                  className="btn btn-secondary py-2 text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
-
-                {hasNext ? (
-                  <button
-                    onClick={() => setCurrentQuizStep(prev => prev + 1)}
-                    disabled={!isAnswered}
-                    className="btn btn-primary py-2 px-6 text-sm"
-                  >
-                    Next Question
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSubmitQuiz}
-                    disabled={submittingQuiz || !isAnswered}
-                    className="btn btn-primary py-2 px-6 text-sm flex items-center gap-2"
-                  >
-                    {submittingQuiz ? (
-                      <>
-                        <Loader className="h-4 w-4 animate-spin" />
-                        Evaluating...
-                      </>
-                    ) : (
-                      'Submit Evaluation'
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Topics Preview Section */}
-          <div className="mt-8 card p-0 overflow-hidden">
-            <div className="px-5 py-4 bg-slate-50 border-b border-gray-200">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Course Topics Preview</h3>
-              <p className="text-xs text-gray-500 mt-1">Complete the prerequisite above to access these topics</p>
-            </div>
-            
-            <div className="divide-y divide-gray-100">
-              {lessons.map((lesson, idx) => (
-                <div key={lesson._id} className="px-5 py-4 flex items-center gap-3.5 opacity-60">
-                  <Lock className="h-5 w-5 text-gray-400 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-400 font-bold uppercase">Topic {idx + 1}</p>
-                    <p className="text-sm font-bold truncate text-gray-600">{lesson.title}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="rounded-2xl bg-white border border-indigo-100 p-8 text-center max-w-md mx-auto my-12 shadow">
+          <FileText className="mx-auto h-12 w-12 text-indigo-500 mb-4" />
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Prerequisite Needed</h3>
+          <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+            You must complete the prerequisite diagnostic test before accessing your workspace.
+          </p>
+          <button
+            onClick={() => navigate(`/course/${courseId}/prerequisite`)}
+            className="btn btn-primary w-full"
+          >
+            Take Assessment
+          </button>
         </div>
       </StudentLayout>
     );

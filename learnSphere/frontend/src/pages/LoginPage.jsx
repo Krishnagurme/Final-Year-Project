@@ -48,12 +48,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white relative">
-      
-      {/* Absolute Navbar so it floats over split screen seamlessly */}
-      <div className="absolute top-0 w-full z-50">
-        <Navbar variant="auth" />
-      </div>
-
       {/* Left Pane: The Workspace (Form) */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 lg:p-24 pt-32 md:pt-12 min-h-screen">
         <div className="w-full max-w-sm">

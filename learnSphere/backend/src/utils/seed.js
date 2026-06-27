@@ -37,6 +37,7 @@ const SAMPLE_COURSES = [
     description: 'Learn sets, logic, combinatorics, graph theory, and mathematical proofs essential for algorithmic thinking.',
     category: 'Computer Science',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Sets and Set Theory',
@@ -87,6 +88,7 @@ const SAMPLE_COURSES = [
     description: 'Learn arrays, linked lists, trees, graphs, sorting, searching, and algorithm analysis techniques.',
     category: 'Computer Science',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Arrays and Linked Lists',
@@ -136,6 +138,7 @@ const SAMPLE_COURSES = [
     description: 'Learn about CPU design, memory hierarchy, instruction sets, and computer arithmetic.',
     category: 'Computer Science',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Number Systems and Computer Arithmetic',
@@ -185,6 +188,7 @@ const SAMPLE_COURSES = [
     description: 'Learn classes, objects, inheritance, polymorphism, encapsulation, and SOLID principles.',
     category: 'Programming',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Classes and Objects',
@@ -234,6 +238,7 @@ const SAMPLE_COURSES = [
     description: 'Study raster graphics, geometric transformations, 3D rendering, and graphics programming.',
     category: 'Computer Science',
     level: 'ADVANCED',
+    thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Introduction to Graphics',
@@ -283,6 +288,7 @@ const SAMPLE_COURSES = [
     description: 'Learn ER models, relational algebra, SQL, normalization, and transaction management.',
     category: 'Computer Science',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Introduction to Databases',
@@ -332,6 +338,7 @@ const SAMPLE_COURSES = [
     description: 'Learn OSI model, TCP/IP, routing, switching, and network security fundamentals.',
     category: 'Computer Science',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Network Fundamentals',
@@ -381,6 +388,7 @@ const SAMPLE_COURSES = [
     description: 'Study SDLC, agile methodologies, testing, requirements engineering, and project planning.',
     category: 'Software Engineering',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Software Development Life Cycle',
@@ -430,6 +438,7 @@ const SAMPLE_COURSES = [
     description: 'Learn supervised learning, unsupervised learning, model evaluation, and popular ML algorithms.',
     category: 'Artificial Intelligence',
     level: 'ADVANCED',
+    thumbnail: 'https://images.unsplash.com/photo-1527474305487-b87b222841cc?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Introduction to Machine Learning',
@@ -479,6 +488,7 @@ const SAMPLE_COURSES = [
     description: 'Study encryption, network security, ethical hacking, and security protocols.',
     category: 'Cybersecurity',
     level: 'INTERMEDIATE',
+    thumbnail: 'https://images.unsplash.com/photo-1563206767-5b18f218e8de?auto=format&fit=crop&w=800&q=80',
     topics: [
       {
         title: 'Introduction to Cybersecurity',
@@ -557,6 +567,12 @@ export async function seedDatabase() {
 }
 
 async function seedSampleCourses() {
+  const courseCount = await Course.countDocuments();
+  if (courseCount > 0) {
+    console.log('✅ Courses already exist, skipping course seed');
+    return;
+  }
+
   // Clear existing courses, lessons, and enrollments to ensure clean seed
   await Lesson.deleteMany({});
   await Course.deleteMany({});
@@ -589,6 +605,8 @@ async function seedSampleCourses() {
       description: sample.description,
       category: sample.category,
       level: sample.level,
+      thumbnail: sample.thumbnail,
+      coverImage: sample.thumbnail,
       instructor: instructor._id,
       isPublished: true,
       isFeatured: true,

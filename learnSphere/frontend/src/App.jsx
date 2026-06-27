@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Navbar from './components/Navbar.jsx';
 import { setCredentials } from './store/authSlice.js';
@@ -11,6 +11,8 @@ import StudentDashboard from './pages/StudentDashboard.jsx';
 import StudentCoursesPage from './pages/StudentCoursesPage.jsx';
 import StudentCourseDetail from './pages/StudentCourseDetail.jsx';
 import AIAssessmentPage from './pages/AIAssessmentPage.jsx';
+import CoursePreviewPage from './pages/CoursePreviewPage.jsx';
+import CoursePrerequisitePage from './pages/CoursePrerequisitePage.jsx';
 import SkillLevelPage from './pages/SkillLevelPage.jsx';
 import ProgressPage from './pages/ProgressPage.jsx';
 import CertificatePage from './pages/CertificatePage.jsx';
@@ -105,10 +107,13 @@ function App() {
 
 function AppRoutes() {
   const { isAuthenticated } = useSelector(state => state.auth);
+  const location = useLocation();
+  const hideNavbarRoutes = ['/login', '/register'];
+  const shouldShowNavbar = isAuthenticated && !hideNavbarRoutes.includes(location.pathname);
 
   return (
     <>
-      {isAuthenticated && <Navbar />}
+      {shouldShowNavbar && <Navbar />}
       <Routes>
         {/* Auth Routes */}
         <Route
@@ -129,6 +134,8 @@ function AppRoutes() {
         />
         <Route path="/navbar-mockup" element={<SaaSNavbarMockup />} />
         <Route path="/certificate/verify/:token" element={<CertificateVerifyPage />} />
+        <Route path="/course/:courseId/preview" element={<CoursePreviewPage />} />
+        <Route path="/course/:courseId/prerequisite" element={<CoursePrerequisitePage />} />
 
         {/* Admin Route */}
         <Route

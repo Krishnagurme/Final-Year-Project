@@ -54,7 +54,7 @@ const lessonSchema = new mongoose.Schema(
       {
         title: String,
         url: String,
-        type: String,
+        type: { type: String },
       },
     ],
     quiz: {

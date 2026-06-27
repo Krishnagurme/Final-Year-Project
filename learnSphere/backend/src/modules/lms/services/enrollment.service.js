@@ -1,8 +1,11 @@
 import Course from '../../../models/Course.js';
 import User from '../../../models/User.js';
+import PrerequisiteAttempt from '../../../models/PrerequisiteAttempt.js';
+import { scorePrerequisiteAnswers } from '../constants/prerequisiteQuestions.js';
+import { xpService } from '../../../services/xp.service.js';
 
 export const enrollmentService = {
-  async enrollStudent(courseId, studentId) {
+  async enrollStudent(courseId, studentId, answers = null) {
     console.log(`Enrollment attempt - CourseID: ${courseId}, StudentID: ${studentId}`);
     const course = await Course.findById(courseId);
     if (!course) {
@@ -20,9 +23,47 @@ export const enrollmentService = {
       throw new Error('Student not found');
     }
 
-    const existing = user.enrolledCourses.find(e => e.courseId.toString() === courseId);
+    let existing = user.enrolledCourses.find(e => e.courseId.toString() === courseId);
+
+    // If answers are provided, process them (whether new enrollment or updating an existing one)
+    let prerequisiteCompleted = existing?.prerequisiteCompleted || false;
+    let prerequisiteScore = existing?.prerequisiteScore || 0;
+    let knowledgeLevel = existing?.knowledgeLevel || null;
+    let newlyCompleted = false;
+
+    if (answers && Array.isArray(answers) && !existing?.prerequisiteCompleted) {
+      const result = scorePrerequisiteAnswers(course.title, answers);
+      prerequisiteScore = result.score;
+      knowledgeLevel = result.knowledgeLevel;
+      prerequisiteCompleted = true;
+      newlyCompleted = true;
+
+      // Award XP
+      const xpReward = Math.round(prerequisiteScore / 2);
+      await xpService.addXP(studentId, xpReward, 'prerequisite_test');
+      await xpService.updateLearningStreak(studentId);
+      await xpService.unlockAchievement(studentId, 'FIRST_QUIZ');
+
+      await PrerequisiteAttempt.create({
+        studentId,
+        courseId,
+        answers,
+        score: result.score,
+        knowledgeLevel: result.knowledgeLevel,
+        totalQuestions: result.totalQuestions,
+        correctCount: result.correctCount,
+      });
+    }
+
     if (existing) {
       console.log(`Already enrolled in course: ${courseId}`);
+      // If they just completed the prerequisite, update the existing enrollment
+      if (newlyCompleted) {
+        existing.prerequisiteCompleted = true;
+        existing.prerequisiteScore = prerequisiteScore;
+        existing.knowledgeLevel = knowledgeLevel;
+        await user.save();
+      }
       return { course, enrollment: existing, alreadyEnrolled: true };
     }
 
@@ -36,9 +77,9 @@ export const enrollmentService = {
       courseId,
       enrolledAt: new Date(),
       progress: 0,
-      prerequisiteCompleted: false,
-      prerequisiteScore: 0,
-      knowledgeLevel: null,
+      prerequisiteCompleted,
+      prerequisiteScore,
+      knowledgeLevel,
       certificateEligible: false,
       status: 'in_progress',
     });

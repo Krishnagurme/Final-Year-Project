@@ -44,7 +44,7 @@ const StudentDashboard = () => {
         assessmentHistory: realStats.assessmentHistory || [],
       });
 
-      const coursesResponse = await courseService.getAllCourses({ limit: 6 });
+      const coursesResponse = await courseService.getAllCourses({ limit: 20 });
       setCourses(coursesResponse.data?.data || []);
     } catch (error) {
       console.error('Error fetching dashboard:', error);
@@ -340,9 +340,18 @@ const StudentDashboard = () => {
             <div className="text-center py-8">Loading...</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.slice(0, 3).map(course => (
-                <CourseCard key={course._id} course={course} />
-              ))}
+              {courses.filter(course => !userStats.enrolledCourses.some(enrolled => enrolled.courseId === course._id || enrolled.courseId === course.id)).length > 0 ? (
+                courses
+                  .filter(course => !userStats.enrolledCourses.some(enrolled => enrolled.courseId === course._id || enrolled.courseId === course.id))
+                  .slice(0, 3)
+                  .map(course => (
+                  <CourseCard key={course._id || course.id} course={course} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  You have enrolled in all recommended courses!
+                </div>
+              )}
             </div>
           )}
         </div>

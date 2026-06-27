@@ -6,7 +6,7 @@ const StudentLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-slate-50 bg-gradient-to-br from-blue-50 via-white to-indigo-50/50">
+    <div className="flex bg-slate-50 bg-gradient-to-br from-blue-50 via-white to-indigo-50/50" style={{ height: 'calc(100vh - 65px)' }}>
       <StudentSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 overflow-auto relative">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.015] pointer-events-none"></div>

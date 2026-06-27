@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 
 // Resolve the full completions URL at call time (after dotenv has loaded) so the
 // configured AI_BASE_URL is always prepended — a bare "/chat/completions" has no host.
@@ -9,14 +9,21 @@ const getAiHeaders = () => ({ Authorization: `Bearer ${process.env.AI_API_KEY ||
 // Models often wrap JSON in ```json fences or add prose. Strip fences and, failing a
 // direct parse, extract the outermost {...} so generation doesn't fall back unnecessarily.
 const parseJsonContent = content => {
-  const cleaned = String(content).replace(/```json/gi, '').replace(/```/g, '').trim();
+  let cleaned = String(content).replace(/```json/gi, '').replace(/```/g, '').trim();
+  // Strip trailing commas before closing brackets/braces (common AI hallucination)
+  cleaned = cleaned.replace(/,\s*([\]}])/g, '$1');
+  
   try {
     return JSON.parse(cleaned);
   } catch {
     const start = cleaned.indexOf('{');
     const end = cleaned.lastIndexOf('}');
     if (start !== -1 && end > start) {
-      return JSON.parse(cleaned.slice(start, end + 1));
+      try {
+        return JSON.parse(cleaned.slice(start, end + 1));
+      } catch (e) {
+        throw new Error(`AI response JSON parse failed: ${e.message}`);
+      }
     }
     throw new Error('AI response was not valid JSON');
   }
@@ -556,6 +563,14 @@ function buildFallbackEvaluation(answers, subject, courseLevel) {
 }
 
 export const aiService = {
+  async getSupportedSubjects() {
+    return Object.keys(SUBJECT_KNOWLEDGE_AREAS).map(subject => ({
+      name: subject,
+      topicsCount: SUBJECT_KNOWLEDGE_AREAS[subject].length,
+      topicPreview: SUBJECT_KNOWLEDGE_AREAS[subject].slice(0, 3)
+    }));
+  },
+
   async generateDynamicTest(subject, numberOfQuestions = 5) {
     if (!isAiEnabled()) {
       return {
@@ -598,6 +613,7 @@ export const aiService = {
           ],
           temperature: 0.7,
           max_tokens: 2000,
+          response_format: { type: 'json_object' },
         },
         {
           headers: {

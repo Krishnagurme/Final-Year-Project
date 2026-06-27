@@ -89,7 +89,6 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600">
-      <Navbar />
       <div className="flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
           <div className="text-center mb-8">

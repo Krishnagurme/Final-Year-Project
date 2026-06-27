@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Home,
+  UserCircleIcon,
   PlusCircle,
   Users,
   TrendingUp,
@@ -182,10 +183,10 @@ const StudentSidebar = ({ isOpen, onClose }) => {
         <Link 
           to="/student/profile" 
           className={`flex items-center gap-3.5 px-3 py-3 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all group ${isCollapsed ? 'justify-center w-full' : ''}`}
-          title={isCollapsed ? "Settings" : undefined}
+          title={isCollapsed ? "Profile" : undefined}
         >
-          <Settings size={20} className="shrink-0 text-gray-400 group-hover:text-gray-600 transition-transform group-hover:rotate-90 duration-500" />
-          {!isCollapsed && <span className="font-medium">Settings</span>}
+          <UserCircleIcon size={20} className="shrink-0 text-gray-400 group-hover:text-gray-600 transition-transform duration-500" />
+          {!isCollapsed && <span className="font-medium">Profile</span>}
         </Link>
         <button 
           onClick={() => dispatch(logout())} 
