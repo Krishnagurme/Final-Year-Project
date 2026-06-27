@@ -42,12 +42,16 @@ const StudentCoursesPage = () => {
       ]);
 
       const realCourses =
-        coursesResponse.status === 'fulfilled' ? coursesResponse.value.data?.data || [] : [];
+        coursesResponse.status === 'fulfilled' && Array.isArray(coursesResponse.value.data?.data)
+          ? coursesResponse.value.data.data
+          : [];
       const supportedSubjects =
-        subjectsResponse.status === 'fulfilled' ? subjectsResponse.value.data?.data || [] : [];
+        subjectsResponse.status === 'fulfilled' && Array.isArray(subjectsResponse.value.data?.data)
+          ? subjectsResponse.value.data.data
+          : [];
       const myEnrollments =
-        enrollmentsResponse.status === 'fulfilled'
-          ? enrollmentsResponse.value.data?.data || []
+        enrollmentsResponse.status === 'fulfilled' && Array.isArray(enrollmentsResponse.value.data?.data)
+          ? enrollmentsResponse.value.data.data
           : [];
 
       const existingTitles = new Set(
